@@ -17,6 +17,9 @@
     "ai:context": "node scripts/local-ai/build-context.mjs",
     "ai:smoke": "node scripts/local-ai/model-smoke.mjs",
     "ai:ask": "node scripts/local-ai/ask.mjs",
+    "opencode": "node scripts/opencode/run.mjs",
+    "opencode:config": "node scripts/opencode/run.mjs debug config --pure",
+    "opencode:models": "node scripts/opencode/run.mjs models lmstudio --pure",
     "agent": "node scripts/agent/run.mjs",
     "agent:doctor": "node scripts/agent/doctor.mjs",
     "agent:test": "node --test scripts/agent/tests/*.test.mjs"

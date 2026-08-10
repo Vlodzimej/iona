@@ -9,6 +9,7 @@ The connected Russian-language documentation portal explains the project from fi
 - [Documentation home](docs/README.md)
 - [Architecture](docs/architecture.md)
 - [Harness](docs/harness/README.md)
+- [OpenCode setup](docs/opencode.md)
 - [Build your own harness](docs/build-your-own-harness.md)
 - [Glossary](docs/glossary.md)
 - [Overview presentation](docs/presentation/ionic-llm-harness-overview.pptx)
@@ -141,9 +142,11 @@ never committed.
 ai/                  Model/agent policy, prompts, evaluations, and roadmap
 scripts/local-ai/    Skill retrieval and OpenAI-compatible model client
 scripts/agent/       Isolated worktrees, tool policy, agent loop, and tests
+scripts/opencode/    OpenCode launcher for the ignored local connection file
 src/app/             Blank standalone Ionic Angular application
 src/theme/           Shared Ionic design tokens
 capacitor.config.ts  Provider-neutral Capacitor configuration
+opencode.json        OpenCode provider, default model, and approval policy
 AGENTS.md             Rules for coding agents and local models
 ```
 

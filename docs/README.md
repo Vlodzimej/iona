@@ -43,6 +43,7 @@ flowchart LR
   - [Worktree и валидация](agent/worktrees-and-validation.md) — изоляция изменений, проверки и применение патча.
 - [Безопасность](security.md) — модель угроз, секреты, prompt injection, sandbox и журналы.
 - [Эксплуатация](operations.md) — команды, конфигурация, диагностика и разбор проблем.
+- [OpenCode](opencode.md) — подключение OpenCode к удалённой `gpt-oss-20b` через существующий local env.
 - [Deployment-тестирование и hardening](deployment-and-hardening.md) — безопасное удалённое размещение и тесты контура.
 - [Как создать такой harness самостоятельно](build-your-own-harness.md) — подробное руководство от пустого репозитория до управляемого агента.
 - [Тезаурус](glossary.md) — определения терминов простым языком.
@@ -58,6 +59,7 @@ flowchart LR
 | Агентные лимиты, пути и проверки | [`ai/agent.json`](../ai/agent.json)               |
 | Поведение модели                 | [`ai/prompts/system.md`](../ai/prompts/system.md) |
 | Контракт агента                  | [`ai/prompts/agent.md`](../ai/prompts/agent.md)   |
+| Подключение OpenCode             | [`opencode.json`](../opencode.json)               |
 | Реальная логика harness          | [`scripts/local-ai/`](../scripts/local-ai/)       |
 | Реальная логика агента           | [`scripts/agent/`](../scripts/agent/)             |
 | Команды проекта                  | [`package.json`](../package.json)                 |
