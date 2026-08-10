@@ -2,6 +2,17 @@
 
 A clean hybrid-mobile starter with a local-model harness and a controlled coding-agent runtime. The repository intentionally contains no product-specific architecture or business logic.
 
+## Documentation
+
+The connected Russian-language documentation portal explains the project from first principles, with an emphasis on the LLM harness, agent runtime, security boundaries, deployment hardening, and a step-by-step guide for building a similar environment:
+
+- [Documentation home](docs/README.md)
+- [Architecture](docs/architecture.md)
+- [Harness](docs/harness/README.md)
+- [Build your own harness](docs/build-your-own-harness.md)
+- [Glossary](docs/glossary.md)
+- [Overview presentation](docs/presentation/ionic-llm-harness-overview.pptx)
+
 ## Stack
 
 - Angular 22.1 with standalone APIs, strict TypeScript 6, and Vitest.
@@ -26,13 +37,14 @@ The blank application is available at `http://localhost:4200`.
 npm run verify
 ```
 
-The verification pipeline checks formatting, performs a production Angular build, runs Vitest, checks Capacitor, validates LocalAI skill routing, and tests the agent policy and protocol.
+The verification pipeline checks documentation links and formatting, performs a production Angular build, runs Vitest, checks Capacitor, validates LocalAI skill routing, and tests the agent policy and protocol.
 
 Individual commands:
 
 ```bash
 npm run build
 npm test -- --watch=false
+npm run docs:check
 npm run cap:doctor
 npm run ai:doctor
 npm run agent:doctor

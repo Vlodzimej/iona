@@ -1,5 +1,9 @@
 # Angular + Capacitor local-model harness
 
+For the complete connected guide—including terminology, architecture diagrams,
+retrieval internals, the agent runtime, security, operations, and the tutorial
+for building a similar harness—start at [`docs/README.md`](../docs/README.md).
+
 This harness gives `gpt-oss-20b` task-specific access to the live `angular-developer` and `capacitor-plugins` packages under `~/.agents/skills`. It does not fine-tune model weights and does not copy skill content into the repository. Every request reloads the manifests and retrieves the most relevant references, so skill updates become available immediately.
 
 The application checked out beside this directory is only an optional example corpus. Its files are excluded from model context by default and never define model behavior.
