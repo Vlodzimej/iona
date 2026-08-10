@@ -44,6 +44,9 @@ Maintain a clean, reusable Angular/Ionic/Capacitor starter and its provider-neut
 - Label injected skill sources and keep application context disabled unless explicitly requested.
 - Never include environment files, credentials, signing material, generated native assets, lockfiles, or model reasoning in prompts or reports.
 - Reject truncated responses and raw service-channel markers.
+- Run coding tasks in isolated Git worktrees and use only the tool registry in `ai/agent.json`.
+- Apply model-generated changes as validated unified diffs; never execute shell text supplied by the model.
+- Require explicit elevation for protected configuration and native-platform files.
 
 ## Workflow
 

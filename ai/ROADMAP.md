@@ -57,17 +57,27 @@ Exit gate: no critical hallucinations in the core suite and at least 90% pass ra
 
 ## Phase 4 — Coding harness
 
-Status: planned.
+Status: controlled MVP complete; broader isolation and approval workflow pending.
 
-1. Separate read-only answering from patch generation.
-2. Apply generated patches only in disposable Git worktrees.
-3. Derive validation from the target project rather than a fixed command list.
-4. For Angular changes, run formatting, focused tests, and `ng build` with the target project's supported Node version.
-5. Run `npx cap sync` and native builds only when native configuration or plugin dependencies changed.
-6. Feed compiler/test diagnostics back to the model without hidden reasoning, secrets, or unrelated source.
-7. Limit repair iterations and require a clean diff plus human approval before merging.
+Completed in the MVP:
 
-Exit gate: representative tasks produce scoped patches that pass target-project validation without modifying unrelated files.
+1. Separate read-only answering from the coding-agent command.
+2. Apply generated unified diffs only in disposable Git worktrees.
+3. Limit reads, writes, patch size, changed files, tool calls, and iterations.
+4. Deny credentials, signing assets, Git metadata, generated output, binary patches, symlinks, and path traversal.
+5. Run allowlisted formatting, Angular build, Vitest, Capacitor, harness, and agent checks; feed failures back for bounded repair.
+6. Keep the primary checkout unchanged unless the caller explicitly passes `--apply`.
+7. Require `--allow-protected` for package, tooling, native-platform, agent, and CI files.
+
+Next hardening steps:
+
+- Add resumable per-action approval instead of a run-wide protected-file flag.
+- Derive validation profiles from a reviewed project policy instead of assuming this starter's commands.
+- Add a Linux container/namespace executor with read allowlists and disabled network.
+- Add native Android/iOS build profiles that activate only for relevant changes.
+- Add patch-quality and prompt-injection cases to the frozen evaluation suite.
+
+Exit gate: representative tasks produce scoped patches that pass target-project validation without modifying unrelated files, and hostile tool-use cases cannot escape the configured policy.
 
 ## Phase 5 — Training decision
 
@@ -103,5 +113,7 @@ Exit gate: a remote client can reproduce a benchmark run securely and identify t
 1. Tune the skill byte budget from the current 6 KB baseline to 12 KB, 24 KB, and 48 KB using frozen eval comparisons.
 2. Add 15–20 negative and cross-stack cases before collecting any training dataset.
 3. Implement automated eval reporting and three-run stability checks.
-4. Measure how runtime concurrency affects throughput, memory use, and single-request latency.
-5. Decide on fine-tuning only after the baseline failure categories are quantified.
+4. Add agent tool-use, prompt-injection, and repair-loop evaluations.
+5. Add resumable approvals and a Linux container executor.
+6. Measure how runtime concurrency affects throughput, memory use, and single-request latency.
+7. Decide on fine-tuning only after the baseline failure categories are quantified.

@@ -45,6 +45,8 @@ Thumbs.db
 
 # Local AI connection and generated artifacts
 .env.local-ai
+/.agent
+/.agent-tmp
 /ai/generated
 /ai/reports
 /ai/runs

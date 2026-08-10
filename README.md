@@ -1,6 +1,6 @@
 # Angular Ionic Capacitor LLM Starter
 
-A clean hybrid-mobile starter and local-model harness. The repository intentionally contains no product-specific architecture or business logic.
+A clean hybrid-mobile starter with a local-model harness and a controlled coding-agent runtime. The repository intentionally contains no product-specific architecture or business logic.
 
 ## Stack
 
@@ -26,7 +26,7 @@ The blank application is available at `http://localhost:4200`.
 npm run verify
 ```
 
-The verification pipeline checks formatting, performs a production Angular build, runs Vitest, checks Capacitor, and validates the LocalAI skill routing.
+The verification pipeline checks formatting, performs a production Angular build, runs Vitest, checks Capacitor, validates LocalAI skill routing, and tests the agent policy and protocol.
 
 Individual commands:
 
@@ -35,6 +35,8 @@ npm run build
 npm test -- --watch=false
 npm run cap:doctor
 npm run ai:doctor
+npm run agent:doctor
+npm run agent:test
 ```
 
 Angular persistent disk cache is disabled for deterministic agent runs across attached environments.
@@ -81,11 +83,52 @@ Application files are not sent by default. Include this blank starter as untrust
 npm run ai:ask -- --with-project-reference "Adapt the existing home page"
 ```
 
+## Coding-agent runtime
+
+The agent adds a bounded model/tool loop around the LLM harness. It can list,
+search, and read allowed files, apply unified diffs, inspect Git changes, and
+run versioned validation profiles. Every run starts from committed `HEAD` in a
+disposable worktree under the ignored `.agent` directory.
+
+The primary worktree must be clean. A normal run retains its isolated changes
+for review and does not modify the primary checkout:
+
+```bash
+npm run agent:doctor
+npm run agent -- "Add an accessible empty-state component to the home page"
+```
+
+Use `--apply` only when successful, fully validated changes should be copied
+back to the still-clean primary worktree:
+
+```bash
+npm run agent -- "Add an accessible empty-state component" --apply
+```
+
+By default, writes are limited to application roots such as `src/`. Package,
+tooling, native-platform, agent, and CI files are protected. A task that truly
+requires them must be started with the explicit elevated flag:
+
+```bash
+npm run agent -- "Update the native camera integration" --allow-protected
+```
+
+Secret paths and Git metadata remain denied even in elevated mode. Validation
+has no network access when the macOS process sandbox is available. On another
+platform, run the agent inside an OS/container sandbox; host execution requires
+an explicit opt-in through `LOCAL_AGENT_ALLOW_HOST_EXECUTION=1` or the
+`--allow-host-execution` flag.
+
+Run transcripts can contain task text, patches, and model output. They are
+stored locally under `.agent/runs` with restricted file permissions and are
+never committed.
+
 ## Repository layout
 
 ```text
-ai/                  Model configuration, prompts, evaluations, and roadmap
-scripts/local-ai/    Skill retrieval and LM Studio client
+ai/                  Model/agent policy, prompts, evaluations, and roadmap
+scripts/local-ai/    Skill retrieval and OpenAI-compatible model client
+scripts/agent/       Isolated worktrees, tool policy, agent loop, and tests
 src/app/             Blank standalone Ionic Angular application
 src/theme/           Shared Ionic design tokens
 capacitor.config.ts  Provider-neutral Capacitor configuration

@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "maximumIterations": 16,
+  "maximumToolCalls": 40,
+  "maximumToolOutputBytes": 24000,
+  "maximumReadBytes": 50000,
+  "maximumPatchBytes": 200000,
+  "maximumChangedFiles": 40,
+  "checkTimeoutMs": 600000,
+  "searchTimeoutMs": 10000,
+  "allowedWritePatterns": ["src/**", "public/**", "tests/**", "e2e/**"],
+  "protectedWritePatterns": [
+    "package.json",
+    "package-lock.json",
+    "angular.json",
+    "ionic.config.json",
+    "capacitor.config.*",
+    "tsconfig*.json",
+    "vitest.config.*",
+    "AGENTS.md",
+    "README.md",
+    "ai/**",
+    "scripts/**",
+    ".github/**",
+    "android/**",
+    "ios/**"
+  ],
+  "deniedPatterns": [
+    ".git/**",
+    ".agent/**",
+    ".agent-tmp/**",
+    ".env",
+    ".env*",
+    ".env.*",
+    "**/.env",
+    "**/.env*",
+    "**/.env.*",
+    ".npmrc",
+    "**/.npmrc",
+    ".netrc",
+    "**/.netrc",
+    ".docker/**",
+    "**/.docker/**",
+    "node_modules/**",
+    "dist/**",
+    "coverage/**",
+    "**/*.pem",
+    "**/*.key",
+    "**/*.p12",
+    "**/*.jks",
+    "**/*.keystore",
+    "**/*.mobileprovision",
+    "**/google-services.json",
+    "**/GoogleService-Info.plist"
+  ],
+  "checks": {
+    "fast": [
+      ["npm", "run", "format:check"],
+      ["npm", "test", "--", "--watch=false"]
+    ],
+    "build": [
+      ["npm", "run", "format:check"],
+      ["npm", "run", "build"]
+    ],
+    "full": [
+      ["npm", "run", "format:check"],
+      ["npm", "run", "build"],
+      ["npm", "test", "--", "--watch=false"],
+      ["npm", "run", "cap:doctor"],
+      ["npm", "run", "ai:doctor"],
+      ["npm", "run", "agent:test"]
+    ]
+  },
+  "requiredFinishCheck": "full"
+}

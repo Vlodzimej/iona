@@ -66,15 +66,40 @@ npm run ai:ask -- --with-project-reference "Покажи, как адаптир�
 
 `ai:ask` is read-only: it prints the answer and never applies model-generated changes.
 
+## Run the coding agent
+
+The coding-agent runtime reuses the same model connection and trusted skill
+retrieval. Unlike `ai:ask`, it exposes a small tool registry and maintains a
+multi-turn loop until the model requests `finish` or reaches a configured
+limit.
+
+```sh
+npm run agent:doctor
+npm run agent -- "Добавь доступное пустое состояние на домашнюю страницу"
+```
+
+Each run uses a detached Git worktree. The model can only submit unified diffs;
+the controller validates every path and rejects traversal, symlinks, binary
+patches, secrets, Git metadata, and non-allowlisted writes. `finish` triggers
+the full check profile, and failures are returned to the model for a bounded
+repair loop.
+
+The primary checkout is unchanged unless `--apply` is supplied. Protected
+configuration and native files additionally require `--allow-protected`.
+Review `ai/agent.json` before enabling elevated mode.
+
 ## Versioned files
 
 - `harness.json` — skill allowlist, retrieval limits, bilingual aliases, and optional reference-project policy.
+- `agent.json` — tool limits, write policy, protected paths, and validation profiles.
 - `prompts/system.md` — stack-focused model behavior independent of any particular application.
+- `prompts/agent.md` — coding-agent tool and safety contract.
 - `remote-model.md` — provider-neutral endpoint and optional tunnel instructions.
 - `evals/task.schema.json` — evaluation task contract.
 - `evals/tasks` — frozen Angular and Capacitor routing checks.
 
-Connection settings, generated contexts, evaluation reports, model runs, datasets, and weights remain ignored by Git.
+Connection settings, generated contexts, agent worktrees and transcripts,
+evaluation reports, model runs, datasets, and weights remain ignored by Git.
 
 ## Context-window tuning
 

@@ -11,11 +11,14 @@
     "cap:doctor": "cap doctor",
     "format": "prettier --write --ignore-unknown .",
     "format:check": "prettier --check --ignore-unknown .",
-    "verify": "npm run format:check && npm run build && npm test -- --watch=false && npm run cap:doctor && npm run ai:doctor",
+    "verify": "npm run format:check && npm run build && npm test -- --watch=false && npm run cap:doctor && npm run ai:doctor && npm run agent:doctor -- --source-only && npm run agent:test",
     "ai:doctor": "node scripts/local-ai/doctor.mjs",
     "ai:context": "node scripts/local-ai/build-context.mjs",
     "ai:smoke": "node scripts/local-ai/model-smoke.mjs",
-    "ai:ask": "node scripts/local-ai/ask.mjs"
+    "ai:ask": "node scripts/local-ai/ask.mjs",
+    "agent": "node scripts/agent/run.mjs",
+    "agent:doctor": "node scripts/agent/doctor.mjs",
+    "agent:test": "node --test scripts/agent/tests/*.test.mjs"
   },
   "private": true,
   "packageManager": "npm@11.17.0",
