@@ -16,8 +16,8 @@ Operating rules:
 - Never encode shell commands inside source or tests to escape the tool policy.
 - Run focused checks while iterating when useful. Call `finish` only after
   inspecting the final diff; the controller will run the required full check.
-- If a protected file is necessary and the tool denies it, stop with a concise
-  explanation instead of finding a bypass.
+- If a protected file is necessary, request it with the exact minimal patch.
+  The controller may pause for human approval. Never look for a bypass.
 - Keep changes scoped to the user's task and preserve unrelated behavior.
 - Do not emit hidden reasoning. Tool arguments and the final summary must be
   concise and factual.

@@ -16,22 +16,28 @@ flowchart LR
 
 ## Справочник команд
 
-| Команда                               | Назначение                             |              Обращается к модели |                   Меняет source files |
-| ------------------------------------- | -------------------------------------- | -------------------------------: | ------------------------------------: |
-| `npm start`                           | Angular dev server                     |                              нет |                                   нет |
-| `npm run build`                       | Production Angular build               |                              нет |                                   нет |
-| `npm test -- --watch=false`           | Unit tests один раз                    |                              нет |                                   нет |
-| `npm run cap:doctor`                  | Проверка Capacitor                     |                              нет |                                   нет |
-| `npm run docs:check`                  | Проверка внутренних Markdown links     |                              нет |                                   нет |
-| `npm run ai:doctor`                   | Проверка skills/config/routing         |                              нет |                                   нет |
-| `npm run ai:context -- --query "..."` | Показать выбранный context bundle      |                              нет |    только с `--output` в ignored path |
-| `npm run ai:smoke`                    | Проверка endpoint/model response       |                               да |                                   нет |
-| `npm run ai:ask -- "..."`             | Read-only консультация                 |                               да |                                   нет |
-| `npm run agent:doctor`                | Проверка agent prerequisites/isolation |                              нет |                                   нет |
-| `npm run agent:test`                  | Tests policy/protocol/tools/runtime    | mock endpoint в integration test |                    временные fixtures |
-| `npm run agent -- "..."`              | Изменение в isolated worktree          |                               да |                       только worktree |
-| `npm run agent -- "..." --apply`      | То же + применение успешного patch     |                               да |                      да, после checks |
-| `npm run verify`                      | Полный repository gate                 |       нет для source-only checks | build artifacts по правилам toolchain |
+| Команда                               | Назначение                             |                  Обращается к модели |                   Меняет source files |
+| ------------------------------------- | -------------------------------------- | -----------------------------------: | ------------------------------------: |
+| `npm start`                           | Angular dev server                     |                                  нет |                                   нет |
+| `npm run build`                       | Production Angular build               |                                  нет |                                   нет |
+| `npm test -- --watch=false`           | Unit tests один раз                    |                                  нет |                                   нет |
+| `npm run cap:doctor`                  | Проверка Capacitor                     |                                  нет |                                   нет |
+| `npm run cap:check`                   | Offline-проверка загрузки config       |                                  нет |                                   нет |
+| `npm run docs:check`                  | Проверка внутренних Markdown links     |                                  нет |                                   нет |
+| `npm run ai:doctor`                   | Проверка skills/config/routing         |                                  нет |                                   нет |
+| `npm run ai:context -- --query "..."` | Показать выбранный context bundle      |                                  нет |    только с `--output` в ignored path |
+| `npm run ai:smoke`                    | Проверка endpoint/model response       |                                   да |                                   нет |
+| `npm run ai:ask -- "..."`             | Read-only консультация                 |                                   да |                                   нет |
+| `npm run agent:doctor`                | Проверка agent prerequisites/isolation |                                  нет |                                   нет |
+| `npm run agent:docker:build`          | Собрать pinned Docker runner image     | Docker build может скачать base/deps |                                   нет |
+| `npm run agent:test`                  | Tests policy/protocol/tools/runtime    |     mock endpoint в integration test |                    временные fixtures |
+| `npm run agent -- "..."`              | Изменение в isolated worktree          |                                   да |                       только worktree |
+| `npm run agent -- "..." --apply`      | То же + применение успешного patch     |                                   да |                      да, после checks |
+| `npm run agent:status -- <run-id>`    | Показать сохранённое состояние         |                                  нет |                                   нет |
+| `npm run agent:approve -- <id>`       | Одобрить exact protected action        |                                  нет |             только ignored state file |
+| `npm run agent:resume -- <run-id>`    | Продолжить paused run                  |                                   да |                       только worktree |
+| `npm run agent:api`                   | Запустить loopback Agent API           |                                   да |        через Docker isolated worktree |
+| `npm run verify`                      | Полный repository gate                 |           нет для source-only checks | build artifacts по правилам toolchain |
 
 ## Конфигурация модели
 
@@ -73,6 +79,8 @@ jq -c '{timestamp, type, iteration, tool, result}' \
 
 Не прикладывайте полный log к публичной issue: сначала проверьте task text, patches и model output на чувствительные данные.
 
+Если status равен `waiting_approval`, сначала изучите точный patch в worktree и paths в `agent:status`. Решение и продолжение — два отдельных действия; это позволяет отложить resume или выполнить его после перезапуска процесса. Полный lifecycle описан в [разделе об executors и API](agent/executors-approvals-api.md).
+
 ## Типовые проблемы
 
 ### `Required skill is missing`
@@ -92,7 +100,11 @@ Agent intentionally не смешивает изменения. Закончит
 
 ### `No supported process sandbox is available`
 
-Это означает, что checks не будут запущены на host автоматически. Предпочтительный путь — контейнер/VM. Явный `--allow-host-execution` допустим только если среда уже изолирована и вы принимаете риск выполнения versioned check scripts.
+Это относится только к явно выбранному LocalExecutor. Предпочтительный путь — собрать Docker image и оставить default `docker`. Явный `--allow-host-execution` допустим, только если host уже изолирован и вы принимаете риск выполнения versioned check scripts.
+
+### `Docker daemon is unavailable` или `Runner image is missing`
+
+Запустите установленный Docker runtime, затем выполните `npm run agent:docker:build` и `npm run agent:doctor`. Agent API намеренно не стартует без готового Docker executor.
 
 ### Ответ усечён
 

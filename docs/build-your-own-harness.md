@@ -258,9 +258,15 @@ Versioned check profiles храните как arrays executable/args. Запу�
 - без network;
 - в container/microVM для production.
 
+Практический шаблон — ввести интерфейс Executor с двумя операциями: применить уже авторизованный patch и выполнить versioned check profile. Сделайте Docker реализацией по умолчанию: no network, non-root, read-only root filesystem, dropped capabilities и жёсткие resource limits. Controller и model client оставьте за границей build-container.
+
 Для Angular/Ionic/Capacitor reasonable full profile: format, production build, unit tests, `cap doctor`, harness doctor и agent tests.
 
-## Этап 14. Добавить observability
+## Этап 14. Добавить resumable approvals
+
+Не просите пользователя перезапускать задачу с глобальным повышением прав. Сохраняйте messages, counters, next iteration и pending tool call. Approval связывайте с run ID, capability, hash точных аргументов, paths и TTL. После решения повторно проверьте связь, выполните ровно pending action и продолжите цикл.
+
+## Этап 15. Добавить observability
 
 Каждый event должен иметь timestamp, run ID, iteration, event type и безопасные metadata. Логи нужны для воспроизведения последовательности, но не должны становиться бесконтрольным хранилищем prompts и кода.
 
@@ -271,9 +277,9 @@ Versioned check profiles храните как arrays executable/args. Запу�
 - sensitive local transcript с короткой retention;
 - accepted patch/evidence artifact.
 
-## Этап 15. Подготовить remote deployment
+## Этап 16. Подготовить remote deployment
 
-Перед удалённым доступом добавьте authenticated gateway, queue, ephemeral runner, resource quotas, no-egress sandbox, short-lived identities, approval workflow, provenance и canary rollout. Полный checklist находится в [deployment-hardening](deployment-and-hardening.md).
+Начните с loopback API, длинного bearer token, body/concurrency limits и принудительного review-only Docker режима. Перед доступом из сети добавьте TLS gateway, проверяемую identity, repository authorization, durable queue/state, short-lived identities, provenance и canary rollout. Полный checklist находится в [deployment-hardening](deployment-and-hardening.md).
 
 ## Definition of done
 
@@ -288,11 +294,13 @@ Versioned check profiles храните как arrays executable/args. Запу�
 - каждый run работает в отдельной Git copy;
 - arbitrary shell отсутствует;
 - finish требует versioned checks;
+- Docker/no-egress executor является default;
+- protected capabilities используют exact pause/resume approval;
 - результат не применяется без явного действия;
 - logs и secrets исключены из Git;
 - `verify` стабильно проходит на clean clone.
 
-Production-ready среда дополнительно требует container/VM isolation, identity/authorization, multi-tenant quotas, secure logging, deployment tests, approval workflow и rollback.
+Multi-user production-ready среда дополнительно требует identity/repository authorization, transactional queue/state, tenant isolation, secure centralized logging, deployment tests и rollback.
 
 ## Что копировать из этого репозитория
 
@@ -302,6 +310,7 @@ Production-ready среда дополнительно требует container/
 - [`scripts/local-ai/`](../scripts/local-ai/) — read-only harness;
 - [`ai/agent.json`](../ai/agent.json) — versioned policy;
 - [`scripts/agent/`](../scripts/agent/) — controlled runtime;
+- [`docker/`](../docker/) — hardened executor image;
 - [`scripts/agent/tests/`](../scripts/agent/tests/) — примеры security/integration tests;
 - [`AGENTS.md`](../AGENTS.md) — краткий operational contract.
 

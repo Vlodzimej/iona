@@ -40,6 +40,7 @@ flowchart LR
   - [Оценка качества](harness/evaluations.md) — eval-задачи, метрики и регрессионный цикл.
 - [Agent runtime](agent/README.md) — цикл «модель → инструмент → наблюдение → проверка».
   - [Инструменты и политика](agent/tools-and-policy.md) — реестр возможностей и контроль путей.
+  - [Executors, approvals и Agent API](agent/executors-approvals-api.md) — Docker isolation, pause/resume и безопасная удалённая точка входа.
   - [Worktree и валидация](agent/worktrees-and-validation.md) — изоляция изменений, проверки и применение патча.
 - [Безопасность](security.md) — модель угроз, секреты, prompt injection, sandbox и журналы.
 - [Эксплуатация](operations.md) — команды, конфигурация, диагностика и разбор проблем.

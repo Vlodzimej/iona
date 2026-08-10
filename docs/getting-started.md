@@ -96,6 +96,7 @@ npm run ai:ask -- --with-project-reference "Адаптируй существу�
 Сначала проверьте доступность изоляции:
 
 ```bash
+npm run agent:docker:build
 npm run agent:doctor
 ```
 
@@ -113,13 +114,16 @@ npm run agent -- "Добавь доступное пустое состояни�
 npm run agent -- "Добавь доступное пустое состояние" --apply
 ```
 
-`--apply` не отменяет проверок и не расширяет права на запись. Для защищённых файлов существует отдельное явное повышение полномочий:
+`--apply` не отменяет проверок и не расширяет права на запись. Для защищённого файла run остановится и напечатает идентификаторы:
 
 ```bash
-npm run agent -- "Обнови конфигурацию Capacitor" --allow-protected
+npm run agent -- "Обнови конфигурацию Capacitor"
+npm run agent:status -- <run-id>
+npm run agent:approve -- <approval-id>
+npm run agent:resume -- <run-id>
 ```
 
-Даже в этом режиме секреты, `.git`, `.agent`, ключи подписи и другие denied paths остаются недоступны.
+Approval действует только для точного patch и данного run. Секреты, `.git`, `.agent`, ключи подписи и другие denied paths остаются недоступны. Подробности: [executors, approvals и Agent API](agent/executors-approvals-api.md).
 
 ## 8. Добавить нативную платформу
 

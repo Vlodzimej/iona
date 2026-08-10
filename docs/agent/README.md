@@ -1,6 +1,6 @@
 # Controlled coding-agent runtime
 
-[Документация](../README.md) · [Архитектура](../architecture.md) · [Инструменты](tools-and-policy.md) · [Worktree](worktrees-and-validation.md) · [Безопасность](../security.md)
+[Документация](../README.md) · [Архитектура](../architecture.md) · [Инструменты](tools-and-policy.md) · [Executors и API](executors-approvals-api.md) · [Worktree](worktrees-and-validation.md) · [Безопасность](../security.md)
 
 ## Что делает runtime агентным
 
@@ -23,6 +23,9 @@ stateDiagram-v2
     AskModel --> ValidateCall: tool call
     AskModel --> AskModel: нет tool call — напоминание
     ValidateCall --> Execute: разрешено
+    ValidateCall --> Approval: protected capability
+    Approval --> Execute: exact approval + resume
+    Approval --> Observe: reject или expiry
     ValidateCall --> Observe: отклонено
     Execute --> Observe
     Observe --> AskModel: следующий шаг
@@ -42,6 +45,10 @@ stateDiagram-v2
 | [`runtime.mjs`](../../scripts/agent/lib/runtime.mjs)   | Жизненный цикл run, сообщения, tool loop и finish          |
 | [`protocol.mjs`](../../scripts/agent/lib/protocol.mjs) | Tool schemas и нормализация model response                 |
 | [`tools.mjs`](../../scripts/agent/lib/tools.mjs)       | Реализация разрешённых операций и check runner             |
+| [`executor.mjs`](../../scripts/agent/lib/executor.mjs) | Выбор Local/Docker execution boundary                      |
+| [`approval.mjs`](../../scripts/agent/lib/approval.mjs) | Exact approvals с TTL и защищённым хранением               |
+| [`state.mjs`](../../scripts/agent/lib/state.mjs)       | Сохраняемое состояние для pause/resume                     |
+| [`api.mjs`](../../scripts/agent/api.mjs)               | Token-protected loopback Agent API                         |
 | [`policy.mjs`](../../scripts/agent/lib/policy.mjs)     | Нормализация путей, glob policy и проверка diff            |
 | [`worktree.mjs`](../../scripts/agent/lib/worktree.mjs) | Изоляция Git, журнал событий, получение и применение patch |
 | [`config.mjs`](../../scripts/agent/lib/config.mjs)     | Загрузка и проверка `ai/agent.json`                        |
@@ -105,22 +112,21 @@ stateDiagram-v2
 
 ## Флаги CLI
 
-| Флаг                     | Что меняет                                                   | Чего не меняет                                    |
-| ------------------------ | ------------------------------------------------------------ | ------------------------------------------------- |
-| `--apply`                | Применяет успешно проверенный patch к primary copy           | Не расширяет allowed paths                        |
-| `--allow-protected`      | Разрешает запись в protected patterns                        | Не открывает denied paths                         |
-| `--allow-host-execution` | Явно разрешает check commands без поддерживаемого OS sandbox | Не делает host execution безопасным автоматически |
-| `--max-iterations N`     | Меняет лимит run в диапазоне 1–100                           | Не меняет tool-call budget                        |
+| Флаг                       | Что меняет                                                   | Чего не меняет                                    |
+| -------------------------- | ------------------------------------------------------------ | ------------------------------------------------- |
+| `--apply`                  | Применяет успешно проверенный patch к primary copy           | Не расширяет allowed paths                        |
+| `--allow-protected`        | Широкий bypass approval для доверенного local maintenance    | Не открывает denied paths                         |
+| `--executor local\|docker` | Выбирает execution boundary; default — Docker                | Не меняет path policy                             |
+| `--allow-host-execution`   | Явно разрешает check commands без поддерживаемого OS sandbox | Не делает host execution безопасным автоматически |
+| `--max-iterations N`       | Меняет лимит run в диапазоне 1–100                           | Не меняет tool-call budget                        |
 
 ## Является ли это полноценной агентной средой
 
-Это **функциональная однопользовательская controlled coding-agent environment уровня MVP**. В ней есть perception через tools, planning модели, action, observation, memory внутри run, validation и isolation.
+Это **полноценная однопользовательская controlled coding-agent environment**: есть perception через tools, planning модели, action, observation, сохраняемая memory, Docker isolation, validation, pause/resume approvals и защищённая API-точка входа.
 
 Для production-grade multi-user среды пока нужны дополнительные уровни:
 
-- контейнерная или VM-изоляция на каждый run;
 - отдельная identity и authorization service;
-- approval workflow для опасных capabilities;
 - queue, concurrency limits и resource quotas;
 - централизованные metrics/traces с redaction;
 - signed artifacts и provenance;

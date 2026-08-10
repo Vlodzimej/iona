@@ -2,9 +2,15 @@
 
 [Документация](README.md) · [Безопасность](security.md) · [Эксплуатация](operations.md) · [Инструкция по созданию](build-your-own-harness.md)
 
+## Уже реализованный локальный baseline
+
+Репозиторий уже содержит DockerExecutor без сети с resource limits, exact resumable approvals, сохраняемое состояние, token-protected loopback Agent API, body/concurrency limits и принудительный review-only режим удалённых runs. Реализация и команды описаны в [Executors, approvals и Agent API](agent/executors-approvals-api.md).
+
+Это закрывает execution boundary и однопользовательский control flow. Следующий раздел показывает компоненты, которые всё ещё нужны вокруг него для multi-user production.
+
 ## Целевая production-топология
 
-Локальный MVP не следует просто открывать наружу портом. Для удалённого доступа нужен разделённый контур.
+Встроенный API не следует просто открывать наружу портом. Для удалённого доступа нужен разделённый контур.
 
 ```mermaid
 flowchart LR

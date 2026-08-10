@@ -42,8 +42,8 @@ flowchart TD
     W -->|"да"| A{"allowedWritePatterns?"}
     A -->|"да"| YES["Запись разрешена"]
     A -->|"нет"| PR{"protectedWritePatterns?"}
-    PR -->|"да + elevation"| ELEV["Запись разрешена как protected"]
-    PR -->|"да без elevation"| APPROVAL["Отклонено: approval required"]
+    PR -->|"да + exact approval"| ELEV["Запись разрешена как protected"]
+    PR -->|"да без approval"| APPROVAL["Run поставлен на паузу"]
     PR -->|"нет"| OUT["Отклонено: вне allowlist"]
 ```
 
@@ -60,9 +60,9 @@ flowchart TD
 
 ### Protected write paths
 
-Конфигурация, prompts, scripts, CI и native projects требуют `--allow-protected`. Среди них `package.json`, Angular/Capacitor configs, `ai/**`, `scripts/**`, `.github/**`, `android/**`, `ios/**`.
+Конфигурация, prompts, scripts, CI и native projects требуют точечного resumable approval. Среди них `package.json`, Angular/Capacitor configs, `ai/**`, `scripts/**`, `.github/**`, `android/**`, `ios/**`.
 
-Protected означает «разрешается только с явным повышением», а не «опасность исчезла». Такие изменения требуют особенно внимательного human review.
+Protected означает «разрешается только после решения человека по точному patch», а не «опасность исчезла». Локальный флаг `--allow-protected` оставлен как широкий maintenance escape hatch и не используется Agent API. Подробности: [executors и approvals](executors-approvals-api.md).
 
 ### Denied paths
 
@@ -111,11 +111,11 @@ Policy применяет case-insensitive проверку дополнител
 
 Команды не приходят от модели. Она выбирает только имя профиля:
 
-| Profile | Команды                                                        |
-| ------- | -------------------------------------------------------------- |
-| `fast`  | format check, unit tests                                       |
-| `build` | format check, Angular production build                         |
-| `full`  | format, build, tests, Capacitor Doctor, AI Doctor, agent tests |
+| Profile | Команды                                                                      |
+| ------- | ---------------------------------------------------------------------------- |
+| `fast`  | format check, unit tests                                                     |
+| `build` | format check, Angular production build                                       |
+| `full`  | format, build, tests, offline Capacitor config check, AI Doctor, agent tests |
 
 Каждая команда хранится как массив executable + args, без shell interpolation. Это исключает выполнение строк вроде `npm test && curl ...`, сгенерированных моделью.
 

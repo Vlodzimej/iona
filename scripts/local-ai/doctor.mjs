@@ -27,6 +27,9 @@ function selectedSources(context) {
 }
 
 const envFileLoaded = loadLocalAiEnv();
+const skillRoot = process.env.LOCAL_AI_SKILL_ROOT?.trim()
+  ? resolve(process.env.LOCAL_AI_SKILL_ROOT.trim().replace(/^~(?=\/|$)/u, homedir()))
+  : resolve(homedir(), '.agents/skills');
 const [nodeMajor, nodeMinor] = process.versions.node.split('.').map(Number);
 let errors = 0;
 
@@ -69,7 +72,7 @@ for (const requiredPath of [
 }
 
 for (const skillName of ['angular-developer', 'capacitor-plugins']) {
-  const manifest = resolve(homedir(), '.agents/skills', skillName, 'SKILL.md');
+  const manifest = resolve(skillRoot, skillName, 'SKILL.md');
   const present = existsSync(manifest);
   status(present ? 'ok' : 'error', 'Skill ' + skillName, present ? manifest : 'missing');
   if (!present) {

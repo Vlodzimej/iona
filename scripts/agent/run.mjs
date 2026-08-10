@@ -13,6 +13,13 @@ function parseArguments(args) {
       options.allowProtected = true;
     } else if (argument === '--allow-host-execution') {
       options.allowHostExecution = true;
+    } else if (argument === '--executor') {
+      const value = args[index + 1];
+      if (!['local', 'docker'].includes(value)) {
+        return { task: '', options, error: '--executor must be local or docker.' };
+      }
+      options.executor = value;
+      index += 1;
     } else if (argument === '--max-iterations') {
       const value = Number(args[index + 1]);
       if (!Number.isSafeInteger(value) || value < 1 || value > 100) {
@@ -33,13 +40,23 @@ if (!parsed.task || parsed.error) {
     console.error(parsed.error);
   }
   console.error(
-    'Usage: npm run agent -- "task" [--apply] [--allow-protected] [--allow-host-execution] [--max-iterations 16]',
+    'Usage: npm run agent -- "task" [--apply] [--allow-protected] [--executor local|docker] [--allow-host-execution] [--max-iterations 16]',
   );
   process.exit(2);
 }
 
 try {
   const result = await runAgent(parsed.task, parsed.options);
+  if (result.status === 'waiting_approval') {
+    console.log('Agent paused for approval.');
+    console.log('Run: ' + result.runId);
+    console.log('Approval: ' + result.approval.id);
+    console.log('Protected paths: ' + result.approval.paths.join(', '));
+    console.log('Approve: npm run agent:approve -- ' + result.approval.id);
+    console.log('Reject: npm run agent:reject -- ' + result.approval.id);
+    console.log('Resume: npm run agent:resume -- ' + result.runId);
+    process.exit(0);
+  }
   console.log('Agent completed: ' + result.summary);
   console.log('Run: ' + result.runId);
   console.log('Worktree: ' + result.worktreeRoot);

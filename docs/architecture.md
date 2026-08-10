@@ -11,6 +11,7 @@ flowchart TB
     subgraph UX["Интерфейс разработчика"]
         Q["ai:ask — read-only вопрос"]
         T["agent — задача на изменение"]
+        RA["Agent API — удалённая review-only задача"]
         C["ai:context — диагностика retrieval"]
     end
 
@@ -33,6 +34,8 @@ flowchart TB
         WT["Disposable Git worktree"]
         CH["Allowlisted checks"]
         LOG["Local event log"]
+        ST["Resumable state + approvals"]
+        EX["Executor boundary"]
     end
 
     LM["gpt-oss-20b"]
@@ -41,6 +44,7 @@ flowchart TB
     C --> R
     Q --> R
     T --> LOOP
+    RA --> LOOP
     CFG --> R
     AS --> R
     CS --> R
@@ -48,8 +52,8 @@ flowchart TB
     R --> P --> API --> LM
     LOOP --> R
     LOOP <--> API
-    LOOP --> POL --> WT
-    WT --> CH --> LOOP
+    LOOP --> POL --> ST --> EX --> WT
+    WT --> CH --> EX --> LOOP
     LOOP --> LOG
     WT -. "успешный патч + --apply" .-> MAIN
 ```
@@ -83,6 +87,8 @@ Harness решает четыре задачи:
 Контроллер получает от модели не shell-текст, а структурированные вызовы из фиксированного реестра. Он проверяет аргументы, пути и бюджеты, исполняет допустимую операцию и возвращает наблюдение модели. Цикл ограничен 16 итерациями и 40 tool calls по текущей конфигурации.
 
 Контроллер остаётся детерминированной доверенной частью системы. Модель — недетерминированный советник внутри его границ.
+
+После policy операции записи и checks передаются через интерфейс Executor. Default DockerExecutor запускает короткоживущий no-network контейнер; LocalExecutor выбирается явно. Protected patch переводит сохраняемое состояние в `waiting_approval`, а не получает широкие полномочия автоматически. См. [executors, approvals и Agent API](agent/executors-approvals-api.md).
 
 ### 4. Изолированная рабочая копия
 
@@ -127,6 +133,8 @@ sequenceDiagram
     participant A as Agent controller
     participant M as Модель
     participant P as Policy
+    participant H as Human approval
+    participant E as Docker Executor
     participant W as Git worktree
     participant V as Validation
 
@@ -137,8 +145,13 @@ sequenceDiagram
         M-->>A: Структурированный tool call
         A->>P: Проверить инструмент, аргументы и путь
         alt Операция разрешена
-            P->>W: Выполнить чтение, поиск или патч
+            P->>E: Передать разрешённый patch/check
+            E->>W: Выполнить операцию
             W-->>A: Наблюдение
+        else Protected patch
+            P-->>A: Pause + exact approval request
+            A-->>H: runId + hash + paths + TTL
+            H-->>A: approve/reject, затем resume
         else Операция запрещена
             P-->>A: Безопасная ошибка
         end

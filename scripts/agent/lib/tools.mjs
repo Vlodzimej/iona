@@ -1,9 +1,9 @@
 import { createHash } from 'node:crypto';
-import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync } from 'node:fs';
-import { homedir, platform, tmpdir } from 'node:os';
-import { dirname, resolve } from 'node:path';
+import { existsSync, lstatSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { globMatches, pathAccess, pathsFromPatch, safeAbsolutePath } from './policy.mjs';
+import { approvalMatches, ApprovalRequiredError } from './approval.mjs';
 import { worktreePatch, worktreeStatus } from './worktree.mjs';
 
 function git(root, args, options = {}) {
@@ -45,119 +45,20 @@ function repositoryFiles(root, config) {
     .sort();
 }
 
-function patchHash(root) {
-  return createHash('sha256').update(worktreePatch(root)).digest('hex');
-}
-
-function sbplString(value) {
-  return '"' + value.replaceAll('\\', '\\\\').replaceAll('"', '\\"') + '"';
-}
-
-export function sandboxProfile(worktreeRoot) {
-  const userHome = homedir();
-  const dependencyLink = resolve(worktreeRoot, 'node_modules');
-  const nodeRuntimeRoot = resolve(dirname(process.execPath), '..');
-  const allowedReadRoots = [
-    '/System',
-    '/usr',
-    '/bin',
-    '/sbin',
-    '/Library',
-    '/opt',
-    '/dev',
-    worktreeRoot,
-    resolve(userHome, '.agents/skills'),
-    nodeRuntimeRoot,
-    ...(existsSync(dependencyLink) ? [realpathSync(dependencyLink)] : []),
-  ];
-  return [
-    '(version 1)',
-    '(deny default)',
-    '(allow process*)',
-    '(allow signal (target self))',
-    '(allow sysctl-read)',
-    '(allow mach-lookup)',
-    '(allow file-read*',
-    ...allowedReadRoots.map((root) => '  (subpath ' + sbplString(root) + ')'),
-    ')',
-    '(allow file-write* (subpath ' + sbplString(worktreeRoot) + '))',
-  ].join('\n');
-}
-
-let sandboxSupport;
-export function macSandboxSupported() {
-  if (sandboxSupport !== undefined) {
-    return sandboxSupport;
-  }
-  if (platform() !== 'darwin' || !existsSync('/usr/bin/sandbox-exec')) {
-    sandboxSupport = false;
-    return sandboxSupport;
-  }
-  const probe = spawnSync(
-    '/usr/bin/sandbox-exec',
-    ['-p', sandboxProfile(resolve(tmpdir(), 'ionic-llm-agent-sandbox-probe')), '/usr/bin/true'],
-    { encoding: 'utf8' },
-  );
-  sandboxSupport = probe.status === 0;
-  return sandboxSupport;
-}
-
-function runAllowlistedCommand(context, command) {
-  const [executable, ...args] = command;
-  const commandTemp = resolve(context.worktreeRoot, '.agent-tmp');
-  mkdirSync(commandTemp, { recursive: true });
-  const environment = {
-    ...process.env,
-    TMPDIR: commandTemp,
-    TMP: commandTemp,
-    TEMP: commandTemp,
-    npm_config_cache: resolve(commandTemp, 'npm-cache'),
-    npm_config_update_notifier: 'false',
-    NG_CLI_ANALYTICS: 'false',
-  };
-  let result;
-
-  if (macSandboxSupported()) {
-    result = spawnSync(
-      '/usr/bin/sandbox-exec',
-      ['-p', sandboxProfile(context.worktreeRoot), executable, ...args],
-      {
-        cwd: context.worktreeRoot,
-        encoding: 'utf8',
-        env: environment,
-        timeout: context.config.checkTimeoutMs,
-        maxBuffer: context.config.maximumToolOutputBytes * 8,
-      },
-    );
-  } else if (context.allowHostExecution) {
-    result = spawnSync(executable, args, {
-      cwd: context.worktreeRoot,
-      encoding: 'utf8',
-      env: environment,
-      timeout: context.config.checkTimeoutMs,
-      maxBuffer: context.config.maximumToolOutputBytes * 8,
+function markNewFilesForDiff(worktreeRoot, paths) {
+  for (const filePath of paths) {
+    const absolutePath = resolve(worktreeRoot, filePath);
+    if (!existsSync(absolutePath)) {
+      continue;
+    }
+    const tracked = spawnSync('git', ['ls-files', '--error-unmatch', '--', filePath], {
+      cwd: worktreeRoot,
+      stdio: 'ignore',
     });
-  } else {
-    return {
-      ok: false,
-      command,
-      error:
-        'No supported process sandbox is available. Set LOCAL_AGENT_ALLOW_HOST_EXECUTION=1 only in an isolated environment.',
-    };
+    if (tracked.status !== 0) {
+      git(worktreeRoot, ['add', '--intent-to-add', '--', filePath]);
+    }
   }
-
-  const output = truncated(
-    [result.stdout, result.stderr].filter(Boolean).join('\n'),
-    context.config.maximumToolOutputBytes,
-  );
-  return {
-    ok: result.status === 0 && !result.error,
-    command,
-    exitCode: result.status,
-    signal: result.signal,
-    output,
-    error: result.error?.message,
-  };
 }
 
 export function createAgentTools(context) {
@@ -265,10 +166,33 @@ export function createAgentTools(context) {
       throw new Error('Patch exceeds the configured byte limit.');
     }
     const paths = pathsFromPatch(args.patch);
+    const protectedPaths = [];
     for (const filePath of paths) {
+      const access = pathAccess(context.config, filePath, { write: true });
+      if (access.reason === 'approval_required') {
+        protectedPaths.push(access.path);
+      } else if (!access.allowed) {
+        safeAbsolutePath(context.worktreeRoot, filePath, context.config, { write: true });
+      }
       safeAbsolutePath(context.worktreeRoot, filePath, context.config, {
         write: true,
-        allowProtected: context.allowProtected,
+        allowProtected: protectedPaths.includes(access.path),
+      });
+    }
+    const approvalRequest = {
+      runId: context.runId,
+      capability: 'apply_patch',
+      argumentHash: createHash('sha256').update(args.patch).digest('hex'),
+      paths: protectedPaths,
+    };
+    if (
+      protectedPaths.length > 0 &&
+      !context.allowProtected &&
+      !approvalMatches(context.approvalGrant, approvalRequest)
+    ) {
+      throw new ApprovalRequiredError({
+        ...approvalRequest,
+        reason: 'The patch modifies protected repository paths.',
       });
     }
     const changedBeforePatch = [
@@ -281,22 +205,8 @@ export function createAgentTools(context) {
     if (new Set([...changedBeforePatch, ...paths]).size > context.config.maximumChangedFiles) {
       throw new Error('Changed-file limit would be exceeded by this patch.');
     }
-    git(context.worktreeRoot, ['apply', '--check', '--whitespace=error-all', '-'], {
-      input: args.patch,
-    });
-    git(context.worktreeRoot, ['apply', '--whitespace=nowarn', '-'], { input: args.patch });
-    for (const filePath of paths) {
-      const absolutePath = resolve(context.worktreeRoot, filePath);
-      if (existsSync(absolutePath)) {
-        const tracked = spawnSync('git', ['ls-files', '--error-unmatch', '--', filePath], {
-          cwd: context.worktreeRoot,
-          stdio: 'ignore',
-        });
-        if (tracked.status !== 0) {
-          git(context.worktreeRoot, ['add', '--intent-to-add', '--', filePath]);
-        }
-      }
-    }
+    const execution = context.executor.applyPatch(args.patch);
+    markNewFilesForDiff(context.worktreeRoot, paths);
     const changedFiles = worktreeStatus(context.worktreeRoot).split(/\r?\n/u).filter(Boolean);
     let whitespaceWarning;
     try {
@@ -304,7 +214,13 @@ export function createAgentTools(context) {
     } catch (error) {
       whitespaceWarning = String(error.stderr || error.message).trim();
     }
-    return { ok: true, paths, status: changedFiles, whitespaceWarning };
+    return {
+      ok: execution.ok === true,
+      executor: context.executor.type,
+      paths,
+      status: changedFiles,
+      whitespaceWarning,
+    };
   }
 
   function gitDiff() {
@@ -316,24 +232,7 @@ export function createAgentTools(context) {
   }
 
   function runChecks(args) {
-    const commands = context.config.checks[args.profile];
-    if (!commands) {
-      throw new Error('Unknown validation profile: ' + args.profile);
-    }
-    const results = [];
-    for (const command of commands) {
-      const result = runAllowlistedCommand(context, command);
-      results.push(result);
-      if (!result.ok) {
-        break;
-      }
-    }
-    return {
-      ok: results.every((result) => result.ok),
-      profile: args.profile,
-      patchHash: patchHash(context.worktreeRoot),
-      results,
-    };
+    return context.executor.runChecks(args.profile);
   }
 
   function execute(name, args = {}) {
@@ -353,5 +252,9 @@ export function createAgentTools(context) {
     return handler(args);
   }
 
-  return { execute, runChecks, patchHash: () => patchHash(context.worktreeRoot) };
+  return {
+    execute,
+    runChecks: ({ profile }) => context.executor.runChecks(profile),
+    patchHash: () => context.executor.patchHash(),
+  };
 }

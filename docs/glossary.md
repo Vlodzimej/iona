@@ -36,6 +36,10 @@
 
 Application Programming Interface — формальный способ взаимодействия программ. Здесь основной внешний API — OpenAI-compatible Chat Completions, а внутренние tool APIs описаны JSON schemas.
 
+### Agent API
+
+Управляющий HTTP-интерфейс для создания и продолжения agent runs. Встроенная реализация принимает только review-only Docker-задачи, требует bearer token и по умолчанию доступна лишь через loopback.
+
 <a id="term-artifact"></a>
 
 ### Artifact
@@ -97,6 +101,12 @@ API-формат, где клиент отправляет последоват�
 ### Eval / evaluation
 
 Зафиксированная задача и процедура измерения качества модели или harness. Может проверять retrieval sources, факты, forbidden claims, latency, tool behavior и итоговые tests.
+
+<a id="term-executor"></a>
+
+### Executor
+
+Граница исполнения уже разрешённых controller-ом операций. DockerExecutor запускает patch/check в ограниченном контейнере; LocalExecutor служит явным development fallback. Executor не решает path policy и не выбирает произвольные команды.
 
 <a id="term-evidence"></a>
 
@@ -202,6 +212,12 @@ API, повторяющий ключевые схемы OpenAI endpoints, нап
 
 Текстовое описание изменений между версиями файлов. Unified Git diff содержит paths и hunks. Controller может проверить patch до применения и показать его человеку для review.
 
+<a id="term-approval"></a>
+
+### Approval
+
+Зафиксированное решение человека разрешить или отклонить опасную capability. В этом runtime разрешение связано с конкретным run, точным hash аргументов, paths и сроком действия, поэтому не является общей «галочкой доверия модели».
+
 <a id="term-policy"></a>
 
 ### Policy
@@ -224,7 +240,7 @@ API, повторяющий ключевые схемы OpenAI endpoints, нап
 
 ### Protected path
 
-Путь, запись в который возможна только при явном elevation. В проекте это configs, prompts, scripts, CI и native platform files.
+Путь, запись в который возможна только после exact approval либо локального maintenance elevation. В проекте это configs, prompts, scripts, CI и native platform files.
 
 <a id="term-provenance"></a>
 

@@ -26,7 +26,7 @@ flowchart TB
 1. Создаётся уникальный `run-id` из timestamp и random suffix.
 2. Создаются `.agent/worktrees/<run-id>` и `.agent/runs/<run-id>`.
 3. Git добавляет detached worktree от `HEAD`.
-4. Если в primary copy есть `node_modules`, создаётся symlink на dependencies, чтобы не выполнять повторный install.
+4. Для LocalExecutor может создаваться symlink на dependencies; DockerExecutor использует dependencies из runner image.
 5. Создаётся `events.jsonl` с правами `0600`.
 6. Модель исследует и меняет worktree через tools.
 7. Новые файлы отмечаются `--intent-to-add`, чтобы попадать в diff.
@@ -46,7 +46,7 @@ flowchart TB
 flowchart LR
     F["Prettier check"] --> B["Angular production build"]
     B --> T["Vitest"]
-    T --> C["Capacitor Doctor"]
+    T --> C["Offline Capacitor config check"]
     C --> A["AI Doctor"]
     A --> AT["Agent tests"]
     AT --> OK["Finish accepted"]
@@ -56,7 +56,9 @@ Pipeline останавливается на первой ошибке. Это �
 
 ## Process isolation
 
-На macOS runtime пытается использовать `/usr/bin/sandbox-exec` с deny-by-default profile:
+Default — [DockerExecutor](executors-approvals-api.md): network отключён, root filesystem read-only, capabilities удалены, заданы CPU/memory/PID/tmp limits, а host secrets не наследуются.
+
+При явном выборе LocalExecutor на macOS runtime пытается использовать `/usr/bin/sandbox-exec` с deny-by-default profile:
 
 - читать можно системные runtime roots, worktree, dependencies и skills;
 - писать можно только внутри worktree;

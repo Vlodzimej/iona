@@ -36,7 +36,7 @@ export function createRunId() {
   return timestamp + '-' + randomBytes(3).toString('hex');
 }
 
-export function createAgentWorktree(projectRoot, runId = createRunId()) {
+export function createAgentWorktree(projectRoot, runId = createRunId(), options = {}) {
   assertCleanWorktree(projectRoot);
   const agentRoot = resolve(projectRoot, '.agent');
   const worktreeRoot = resolve(agentRoot, 'worktrees', runId);
@@ -47,7 +47,7 @@ export function createAgentWorktree(projectRoot, runId = createRunId()) {
 
   try {
     const dependencies = resolve(projectRoot, 'node_modules');
-    if (existsSync(dependencies)) {
+    if (existsSync(dependencies) && options.linkDependencies !== false) {
       symlinkSync(dependencies, resolve(worktreeRoot, 'node_modules'), 'dir');
     }
 

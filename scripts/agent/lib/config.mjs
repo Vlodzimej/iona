@@ -15,7 +15,7 @@ export function loadAgentConfig(projectRoot) {
     'searchTimeoutMs',
   ];
 
-  if (config.schemaVersion !== 1) {
+  if (config.schemaVersion !== 2) {
     throw new Error('Unsupported ai/agent.json schemaVersion.');
   }
   for (const key of positiveIntegers) {
@@ -43,6 +43,43 @@ export function loadAgentConfig(projectRoot) {
     ) {
       throw new Error('Invalid command list for check profile ' + profile + '.');
     }
+  }
+  if (!['local', 'docker'].includes(config.executor?.default)) {
+    throw new Error('ai/agent.json executor.default must be local or docker.');
+  }
+  const docker = config.executor?.docker;
+  if (
+    !docker ||
+    typeof docker.image !== 'string' ||
+    !docker.image ||
+    typeof docker.workspace !== 'string' ||
+    !docker.workspace.startsWith('/') ||
+    docker.network !== 'none' ||
+    typeof docker.memory !== 'string' ||
+    typeof docker.temporaryStorage !== 'string' ||
+    !Number.isFinite(docker.cpus) ||
+    docker.cpus <= 0 ||
+    !Number.isInteger(docker.pidsLimit) ||
+    docker.pidsLimit < 1
+  ) {
+    throw new Error('ai/agent.json executor.docker is invalid or enables networking.');
+  }
+  if (!Number.isInteger(config.approvals?.ttlMs) || config.approvals.ttlMs < 1000) {
+    throw new Error('ai/agent.json approvals.ttlMs must be at least 1000.');
+  }
+  if (
+    typeof config.api?.hostname !== 'string' ||
+    !Number.isInteger(config.api?.port) ||
+    config.api.port < 1 ||
+    config.api.port > 65535 ||
+    !Number.isInteger(config.api.maximumBodyBytes) ||
+    config.api.maximumBodyBytes < 1 ||
+    !Number.isInteger(config.api.maximumConcurrentRuns) ||
+    config.api.maximumConcurrentRuns < 1 ||
+    typeof config.api.tokenEnvironmentVariable !== 'string' ||
+    !config.api.tokenEnvironmentVariable
+  ) {
+    throw new Error('ai/agent.json api configuration is invalid.');
   }
   return config;
 }

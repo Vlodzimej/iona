@@ -107,9 +107,15 @@ The primary worktree must be clean. A normal run retains its isolated changes
 for review and does not modify the primary checkout:
 
 ```bash
+npm run agent:docker:build
 npm run agent:doctor
 npm run agent -- "Add an accessible empty-state component to the home page"
 ```
+
+Docker is the default executor. Validation containers have no network, use a
+read-only root filesystem, drop Linux capabilities, run as a non-root user,
+and have CPU, memory, PID, and temporary-storage limits. A local executor is
+available explicitly for development with `--executor local`.
 
 Use `--apply` only when successful, fully validated changes should be copied
 back to the still-clean primary worktree:
@@ -119,18 +125,29 @@ npm run agent -- "Add an accessible empty-state component" --apply
 ```
 
 By default, writes are limited to application roots such as `src/`. Package,
-tooling, native-platform, agent, and CI files are protected. A task that truly
-requires them must be started with the explicit elevated flag:
+tooling, native-platform, agent, and CI files are protected. If a task needs
+one, the run pauses and prints an exact approval request:
 
 ```bash
-npm run agent -- "Update the native camera integration" --allow-protected
+npm run agent:approve -- <approval-id>
+npm run agent:resume -- <run-id>
 ```
 
-Secret paths and Git metadata remain denied even in elevated mode. Validation
-has no network access when the macOS process sandbox is available. On another
-platform, run the agent inside an OS/container sandbox; host execution requires
-an explicit opt-in through `LOCAL_AGENT_ALLOW_HOST_EXECUTION=1` or the
-`--allow-host-execution` flag.
+Approval is bound to the run, exact patch hash, capability, protected paths,
+and TTL. Secret paths and Git metadata remain denied. The broad
+`--allow-protected` option exists only as a trusted local maintenance escape
+hatch and is never enabled by the Agent API.
+
+A bearer-token protected API can expose review-only Docker runs to a local
+gateway:
+
+```bash
+npm run agent:api
+```
+
+It binds to loopback by default. Put TLS, user identity, authorization, and
+rate limiting in front of it before remote use. See
+[Executors, approvals, and Agent API](docs/agent/executors-approvals-api.md).
 
 Run transcripts can contain task text, patches, and model output. They are
 stored locally under `.agent/runs` with restricted file permissions and are
@@ -142,6 +159,7 @@ never committed.
 ai/                  Model/agent policy, prompts, evaluations, and roadmap
 scripts/local-ai/    Skill retrieval and OpenAI-compatible model client
 scripts/agent/       Isolated worktrees, tool policy, agent loop, and tests
+docker/              Hardened no-network agent runner image
 scripts/opencode/    OpenCode launcher for the ignored local connection file
 src/app/             Blank standalone Ionic Angular application
 src/theme/           Shared Ionic design tokens

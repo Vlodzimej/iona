@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "maximumIterations": 16,
   "maximumToolCalls": 40,
   "maximumToolOutputBytes": 24000,
@@ -8,6 +8,28 @@
   "maximumChangedFiles": 40,
   "checkTimeoutMs": 600000,
   "searchTimeoutMs": 10000,
+  "executor": {
+    "default": "docker",
+    "docker": {
+      "image": "ionic-llm-agent-runner:node-26",
+      "workspace": "/workspace",
+      "network": "none",
+      "cpus": 2,
+      "memory": "4g",
+      "pidsLimit": 256,
+      "temporaryStorage": "512m"
+    }
+  },
+  "approvals": {
+    "ttlMs": 3600000
+  },
+  "api": {
+    "hostname": "127.0.0.1",
+    "port": 7331,
+    "maximumBodyBytes": 100000,
+    "maximumConcurrentRuns": 1,
+    "tokenEnvironmentVariable": "LOCAL_AGENT_API_TOKEN"
+  },
   "allowedWritePatterns": ["src/**", "public/**", "tests/**", "e2e/**"],
   "protectedWritePatterns": [
     "package.json",
@@ -66,7 +88,7 @@
       ["npm", "run", "format:check"],
       ["npm", "run", "build"],
       ["npm", "test", "--", "--watch=false"],
-      ["npm", "run", "cap:doctor"],
+      ["npm", "run", "cap:check"],
       ["npm", "run", "ai:doctor"],
       ["npm", "run", "agent:test"]
     ]

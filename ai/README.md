@@ -78,6 +78,7 @@ multi-turn loop until the model requests `finish` or reaches a configured
 limit.
 
 ```sh
+npm run agent:docker:build
 npm run agent:doctor
 npm run agent -- "Добавь доступное пустое состояние на домашнюю страницу"
 ```
@@ -89,8 +90,10 @@ the full check profile, and failures are returned to the model for a bounded
 repair loop.
 
 The primary checkout is unchanged unless `--apply` is supplied. Protected
-configuration and native files additionally require `--allow-protected`.
-Review `ai/agent.json` before enabling elevated mode.
+configuration and native files pause the run for an exact, expiring approval;
+use `agent:approve` or `agent:reject`, then `agent:resume`. Docker is the default
+executor. See the connected
+[executor and Agent API guide](../docs/agent/executors-approvals-api.md).
 
 ## Versioned files
 

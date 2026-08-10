@@ -1,10 +1,13 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import test from 'node:test';
-import { createAgentTools, sandboxProfile } from '../lib/tools.mjs';
+import { createLocalExecutor, sandboxProfile } from '../lib/executors/local.mjs';
+import { ApprovalRequiredError } from '../lib/approval.mjs';
+import { createAgentTools } from '../lib/tools.mjs';
 
 function git(root, ...args) {
   return execFileSync('git', args, { cwd: root, encoding: 'utf8' });
@@ -40,11 +43,15 @@ const config = {
 test('tools read, search, patch, and report a repository diff', (context) => {
   const root = fixture();
   context.after(() => rmSync(root, { recursive: true, force: true }));
-  const tools = createAgentTools({
+  const toolContext = {
     config,
     worktreeRoot: root,
     allowProtected: false,
     allowHostExecution: false,
+  };
+  const tools = createAgentTools({
+    ...toolContext,
+    executor: createLocalExecutor(toolContext),
   });
 
   assert.deepEqual(tools.execute('list_files', {}).files, ['package.json', 'src/app.ts']);
@@ -69,11 +76,15 @@ test('tools read, search, patch, and report a repository diff', (context) => {
 test('protected and denied patch targets cannot bypass policy', (context) => {
   const root = fixture();
   context.after(() => rmSync(root, { recursive: true, force: true }));
-  const tools = createAgentTools({
+  const toolContext = {
     config,
     worktreeRoot: root,
     allowProtected: false,
     allowHostExecution: false,
+  };
+  const tools = createAgentTools({
+    ...toolContext,
+    executor: createLocalExecutor(toolContext),
   });
   const protectedPatch = [
     'diff --git a/package.json b/package.json',
@@ -86,8 +97,24 @@ test('protected and denied patch targets cannot bypass policy', (context) => {
   ].join('\n');
   assert.throws(
     () => tools.execute('apply_patch', { patch: protectedPatch }),
-    /approval_required/u,
+    (error) => {
+      assert.ok(error instanceof ApprovalRequiredError);
+      assert.deepEqual(error.details.paths, ['package.json']);
+      return true;
+    },
   );
+
+  const approvedTools = createAgentTools({
+    ...toolContext,
+    approvalGrant: {
+      status: 'approved',
+      capability: 'apply_patch',
+      argumentHash: createHash('sha256').update(protectedPatch).digest('hex'),
+      paths: ['package.json'],
+    },
+    executor: createLocalExecutor(toolContext),
+  });
+  assert.equal(approvedTools.execute('apply_patch', { patch: protectedPatch }).ok, true);
   assert.throws(() => tools.execute('read_file', { path: '.env.local' }), /denied/u);
   assert.throws(() => tools.execute('search', { query: 'secret', glob: '.env*' }), /denied path/u);
 });

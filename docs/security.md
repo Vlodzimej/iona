@@ -39,7 +39,7 @@ flowchart TB
 | Symlink escape             | `src/link -> outside`                             | Symlink components/files rejected; symlink patch mode denied                | TOCTOU важен в hostile multi-user FS                        |
 | Shell injection            | Модель возвращает `npm test && curl ...`          | Нет shell tool; checks — массивы из allowlist                               | Package scripts сами являются trusted code и требуют review |
 | Secret leakage             | Read `.env`, key, mobile service config           | Denied paths, project exclusions, redaction, ignored local env              | Секрет может оказаться в нетипичном файле                   |
-| Supply-chain execution     | Изменение package script/dependency               | `package.json` protected; no network in sandbox profile                     | `--allow-protected` требует строгого approval               |
+| Supply-chain execution     | Изменение package script/dependency               | Exact resumable approval; no network в Docker executor                      | Reviewer всё ещё должен проверить последствия               |
 | Unbounded action           | Бесконечные tool calls/огромный patch             | Iteration, tool, byte, file and timeout limits                              | Лимиты нужно согласовать с infrastructure quotas            |
 | Validation bypass          | Модель пишет «тесты прошли»                       | `finish` controller-only; checks запускает controller                       | Проверки могут быть неполными                               |
 | Primary data loss          | Ошибочный patch поверх работы пользователя        | Clean primary required; detached worktree; explicit apply                   | Ошибка Git/toolchain остаётся возможной                     |
@@ -75,7 +75,7 @@ Path denylist — страховка, но не универсальный secre
 
 ## Network boundary
 
-Текущий agent check sandbox не разрешает network access. При этом сам controller должен обратиться к model endpoint до и во время tool loop. В production эти потоки следует разделить:
+DockerExecutor не разрешает network access. При этом controller должен обратиться к model endpoint до и во время tool loop. Эти потоки разделены execution boundary:
 
 - controller имеет egress только к model gateway и control services;
 - build sandbox по умолчанию не имеет egress;
@@ -84,7 +84,7 @@ Path denylist — страховка, но не универсальный secre
 
 ## Повышение полномочий
 
-`--allow-protected` является локальным coarse-grained approval. В multi-user среде нужен capability approval с контекстом:
+Runtime реализует resumable capability approval с `runId`, точным patch hash, списком paths, TTL, actor и решением. Широкий `--allow-protected` остаётся только локальным escape hatch. В multi-user среде к существующему механизму нужно добавить подтверждённую identity и repository authorization:
 
 - кто запросил;
 - какая задача;
@@ -110,7 +110,7 @@ Denied paths нельзя превращать в protected без threat review
 
 ## Ответственное утверждение о безопасности
 
-Текущий репозиторий существенно безопаснее прямого подключения модели к shell, но не является абсолютной sandbox boundary на всех ОС. Если `sandbox-exec` отсутствует, host execution разрешается только явным opt-in. Для недоверенных задач и удалённого multi-user доступа используйте disposable container или microVM.
+Текущий репозиторий существенно безопаснее прямого подключения модели к shell: Docker является default execution boundary, а host execution требует явного выбора и opt-in. Это полноценный однопользовательский baseline, но не абсолютная multi-tenant boundary: для недоверенных пользователей нужны отдельная identity/authorization, durable queue/state, seccomp или microVM, централизованный audit и lifecycle policy.
 
 ---
 
