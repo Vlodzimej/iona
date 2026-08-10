@@ -1,0 +1,29 @@
+{
+  "id": "capacitor-plugin-selection",
+  "title": "Choose official and fallback Capacitor plugins",
+  "category": "capacitor",
+  "prompt": "Для гибридного Angular/Ionic приложения нужно сделать фото и добавить биометрическую проверку. Выбери Capacitor-плагины, объясни порядок official-first, различия Web/Android/iOS и минимальный план интеграции. Не опирайся на код конкретного проекта.",
+  "readOnly": true,
+  "expectedSkills": ["capacitor-plugins"],
+  "expectedReferences": [
+    "capacitor-plugins/references/capacitor-camera.md",
+    "capacitor-plugins/references/capgo-plugin-catalog.md"
+  ],
+  "checks": [
+    {
+      "type": "contains",
+      "values": [
+        "@capacitor/camera",
+        "@capgo/capacitor-native-biometric",
+        "Android",
+        "iOS",
+        "Skill sources"
+      ]
+    },
+    {
+      "type": "not-contains",
+      "values": ["@capacitor/biometrics", "Biometric.authenticate", "<|channel|>"]
+    }
+  ],
+  "timeoutSeconds": 120
+}

@@ -1,0 +1,7 @@
+{
+  "name": "ionic-llm-boilerplate",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}

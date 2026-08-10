@@ -1,0 +1,25 @@
+{
+  "id": "angular-signals-http",
+  "title": "Route Angular signal and HTTP guidance",
+  "category": "angular",
+  "prompt": "Предложи современную архитектуру standalone Angular-компонента, который загружает список через HttpClient, хранит локальное реактивное состояние и показывает loading/error/empty. Код проекта не используй. Точная версия Angular не дана: укажи, что её нужно уточнить, но не угадывай номер.",
+  "readOnly": true,
+  "expectedSkills": ["angular-developer"],
+  "expectedReferences": [
+    "angular-developer/references/http-client.md",
+    "angular-developer/references/signals-overview.md"
+  ],
+  "checks": [
+    { "type": "contains", "values": ["HttpClient", "signal", "Skill sources"] },
+    {
+      "type": "not-contains",
+      "values": [
+        "providers: [provideHttpClient()",
+        "Signal<Item[]>",
+        "@default never",
+        "<|channel|>"
+      ]
+    }
+  ],
+  "timeoutSeconds": 120
+}

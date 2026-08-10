@@ -1,0 +1,9 @@
+/dist
+/node_modules
+/ai/generated
+/ai/reports
+/ai/runs
+/ai/datasets
+/ai/models
+.env.local-ai
+package-lock.json
