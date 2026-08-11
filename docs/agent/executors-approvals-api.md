@@ -2,6 +2,8 @@
 
 [Agent runtime](README.md) · [Tools и policy](tools-and-policy.md) · [Worktree](worktrees-and-validation.md) · [Deployment-hardening](../deployment-and-hardening.md)
 
+Связанное подробное объяснение жизненного цикла, состояния, одобрений и двух уровней проверки: [обособление, состояние и контроль качества](isolation-state-validation.md).
+
 Этот слой отделяет **решение** от **исполнения**. Controller общается с моделью, хранит состояние и проверяет policy. Executor получает только уже разрешённую операцию: применить конкретный patch или запустить именованный профиль проверок.
 
 ```mermaid

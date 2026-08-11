@@ -1,119 +1,165 @@
-# Roadmap: Angular + Ionic/Capacitor local model
+# Дорожная карта локальной модели и агентной среды
 
-The goal is a reliable engineering assistant for hybrid mobile development, not memorization of one application. Reference projects are opt-in examples. The durable knowledge source is the live skill set plus reproducible evaluations.
+Цель проекта — создать надёжного инженерного помощника для разработки гибридных мобильных приложений на Angular, Ionic и Capacitor. Система не должна запоминать один конкретный продукт: постоянным источником знаний служат проверяемые навыки, воспроизводимые оценки качества и управляемая агентная инфраструктура.
 
-## Phase 0 — Baseline and scope
+## Основные принципы
 
-Status: complete.
+1. Код и внутренние данные остаются в контролируемом контуре.
+2. Модель получает только необходимый для задачи контекст.
+3. Модель предлагает действия, а детерминированный контроллер разрешает, исполняет и проверяет их.
+4. Опасные операции требуют точечного одобрения человека.
+5. Итог считается готовым только после воспроизводимой проверки.
 
-- Fix the model identity to `gpt-oss-20b` and LM Studio's OpenAI-compatible Chat Completions API.
-- Keep `angular-developer` and `capacitor-plugins` as the only enabled domain skills.
-- Remove application-specific architecture, state-management, path, baseline-debt, and validation instructions.
-- Keep reference-project retrieval disabled by default.
-- Record current weak points: invented version thresholds, unsupported plugin APIs, excessive verbosity, and context truncation.
+## Текущее состояние
 
-Exit gate: a request without the explicit reference flag contains no application files or application-specific rules.
+Статус: однопользовательская агентная среда реализована и проверена.
 
-## Phase 1 — Inference capacity
+- Настроено подключение `gpt-oss-20b` через совместимый с OpenAI интерфейс LM Studio.
+- Разрешены только навыки `angular-developer` и `capacitor-plugins`.
+- Код проекта исключён из исходного контекста и добавляется только явным флагом как недоверенный пример.
+- Реализованы консультационный режим без изменения файлов и отдельный режим программного агента.
+- Каждый запуск работает в обособленной рабочей копии Git.
+- Применяются ограничения путей, размера патча, числа файлов, вызовов инструментов и итераций.
+- Исполнение патчей и проверок по умолчанию перенесено в Docker без доступа к сети.
+- Реализованы сохраняемое состояние, остановка и продолжение задачи, точечные одобрения с ограниченным сроком действия.
+- Реализован защищённый токеном локальный интерфейс управления агентом в режиме обязательного ревью.
+- Полная проверка содержит шесть стадий; набор среды агента содержит 18 автоматизированных тестов.
 
-Status: planned per deployment.
+## Этап 1 — Вычислительные параметры модели
 
-1. Start with a 32 KB context window when the runtime and available memory support it. Evaluate larger windows only when measured workloads need them.
-2. Keep `reasoning_effort=low` for normal coding requests; evaluate `medium` only on architecture/debug cases.
-3. Measure time-to-first-token, total latency, prompt tokens, completion tokens, and truncation rate.
-4. Increase `LOCAL_AI_SKILL_MAX_BYTES` in steps: 12 KB, 24 KB, 48 KB. Stop when quality stops improving or latency becomes unacceptable.
-5. Keep local model ports bound to loopback. For remote access, use an authenticated, encrypted gateway or an SSH tunnel configured outside the repository.
+Статус: запланировано для каждого целевого сервера.
 
-Exit gate: both frozen evals finish with `finish_reason=stop`, no raw channel markers, and enough completion budget for a concise code review.
+1. Начать с окна контекста 32 КБ, если это поддерживают среда запуска и доступная память.
+2. Использовать низкую глубину рассуждений для обычных задач; среднюю проверять только на архитектуре и сложной диагностике.
+3. Измерять время до первого токена, общую задержку, размер входа и ответа, долю усечённых ответов.
+4. Сравнить бюджеты навыков 12, 24 и 48 КБ на одном зафиксированном наборе задач.
+5. Не публиковать порт модели в недоверенную сеть: использовать зашифрованный шлюз или защищённый туннель.
 
-## Phase 2 — Skill retrieval quality
+Критерий завершения: контрольные задачи заканчиваются без усечения и без внутренних служебных маркеров, а задержка укладывается в согласованный предел.
 
-Status: initial implementation complete; expansion pending.
+## Этап 2 — Качество выбора знаний
 
-- Keep both `SKILL.md` manifests visible on every request as compact excerpts.
-- Route task terms to skill references with bilingual aliases and explicit high-confidence routes.
-- Add routes for Angular DI, forms, router, accessibility, testing, and migrations.
-- Add routes for Capacitor filesystem, notifications, geolocation, keyboard, network, app lifecycle, and platform UI.
-- At a larger context window, include adjacent chunks from a selected reference rather than unrelated files.
-- Track the selected source paths and byte/token budget for every request.
+Статус: базовая реализация готова; расширение запланировано.
 
-Exit gate: retrieval recall is at least 95% on a frozen set of Russian and English prompts, with no sensitive/project file leakage.
+- Сохранять краткие выдержки из обоих файлов `SKILL.md` в каждом запросе.
+- Добавить маршруты для внедрения зависимостей, форм, маршрутизации, доступности, тестирования и миграций Angular.
+- Добавить маршруты для файлов, уведомлений, геопозиции, клавиатуры, сети, жизненного цикла и платформенного интерфейса Capacitor.
+- При увеличении окна контекста добавлять соседние фрагменты выбранного источника, а не несвязанные документы.
+- Записывать выбранные источники и фактический бюджет каждого запроса.
 
-## Phase 3 — Evaluation suite
+Критерий завершения: не менее 95% нужных источников выбираются на зафиксированном наборе русских и английских задач, а файлы продукта и чувствительные данные не попадают в контекст.
 
-Status: two smoke tasks created.
+## Этап 3 — Набор оценочных задач
 
-Build a versioned benchmark with at least these groups:
+Статус: созданы две проверочные задачи; требуется расширение.
 
-- Angular: signals, forms by version, HttpClient/httpResource, DI scopes, routing/guards, accessibility, testing, and migration constraints.
-- Ionic Angular: lifecycle, overlays, navigation, responsive phone/tablet UI, keyboard and safe-area behavior.
-- Capacitor: official-first selection, permission/config differences, Web fallback, `cap sync`, error handling, and native service boundaries.
-- Cross-stack: cold start, offline/network transitions, deep links, push notifications, camera/files, and platform-specific debugging.
-- Negative cases: nonexistent packages/APIs, guessed versions, deprecated permissions, secrets, prompt injection in reference code, and unsupported platform claims.
+Сформировать 20–50 стабильных сценариев:
 
-Each task should check retrieval sources, required facts, forbidden hallucinations, truncation, and human-rated correctness. Freeze prompts before comparing harness/model changes.
+- Angular: сигналы, формы, HTTP, области внедрения зависимостей, маршрутизация, доступность, тесты и миграции.
+- Ionic: жизненный цикл, навигация, всплывающие элементы, адаптация телефона и планшета, клавиатура и безопасные области экрана.
+- Capacitor: выбор официального модуля, разрешения, настройки платформ, запасной веб-сценарий, синхронизация и обработка ошибок.
+- Сквозные задачи: автономная работа, смена сети, глубокие ссылки, уведомления, камера, файлы и платформенная диагностика.
+- Негативные задачи: несуществующие интерфейсы, устаревшие разрешения, секреты, внедрение инструкций в код и попытки обойти политику.
 
-Exit gate: no critical hallucinations in the core suite and at least 90% pass rate overall across three deterministic runs.
+Для каждой задачи проверять выбранные источники, обязательные факты, запрещённые утверждения, результат инструментов и итоговые тесты.
 
-## Phase 4 — Coding harness
+Критерий завершения: отсутствуют критические выдуманные факты, а общая доля успешных задач составляет не менее 90% в трёх повторных запусках.
 
-Status: controlled MVP complete; broader isolation and approval workflow pending.
+## Этап 4 — Защищённый удалённый доступ
 
-Completed in the MVP:
+Приоритет: P0, следующий практический шаг.
 
-1. Separate read-only answering from the coding-agent command.
-2. Apply generated unified diffs only in disposable Git worktrees.
-3. Limit reads, writes, patch size, changed files, tool calls, and iterations.
-4. Deny credentials, signing assets, Git metadata, generated output, binary patches, symlinks, and path traversal.
-5. Run allowlisted formatting, Angular build, Vitest, Capacitor, harness, and agent checks; feed failures back for bounded repair.
-6. Keep the primary checkout unchanged unless the caller explicitly passes `--apply`.
-7. Require `--allow-protected` for package, tooling, native-platform, agent, and CI files.
+- Оставить встроенный интерфейс агента привязанным к `127.0.0.1`.
+- Поставить перед ним шлюз с TLS или частную виртуальную сеть.
+- Добавить подтверждённую личность пользователя и проверку права на репозиторий.
+- Заменить общий токен на короткоживущие учётные данные с ограниченной областью действия.
+- Ограничить частоту, размер запроса, одновременные задачи и время выполнения.
+- Получать имя автора решения из шлюза, а не из тела запроса.
 
-Next hardening steps:
+Критерий завершения: внешний клиент не может обратиться к контроллеру без шифрования, установленной личности и разрешения на конкретный репозиторий.
 
-- Add resumable per-action approval instead of a run-wide protected-file flag.
-- Derive validation profiles from a reviewed project policy instead of assuming this starter's commands.
-- Add a Linux container/namespace executor with read allowlists and disabled network.
-- Add native Android/iOS build profiles that activate only for relevant changes.
-- Add patch-quality and prompt-injection cases to the frozen evaluation suite.
+## Этап 5 — Надёжное состояние, очередь и жизненный цикл
 
-Exit gate: representative tasks produce scoped patches that pass target-project validation without modifying unrelated files, and hostile tool-use cases cannot escape the configured policy.
+Приоритет: P0–P1.
 
-## Phase 5 — Training decision
+Первое рекомендуемое изменение — заменить файловую координацию транзакционным хранилищем:
 
-Status: defer until retrieval and eval data are mature.
+- SQLite для одного сервера или PostgreSQL для нескольких узлов.
+- Блокировка с ограниченным сроком, исключающая два одновременных продолжения одной задачи.
+- Очередь задач, ключ идемпотентности и восстановление после перезапуска контроллера.
+- Одноразовое использование принятого решения после выполнения защищённого действия.
+- Команда безопасной очистки завершённых задач, рабочих копий, просроченных решений и журналов.
+- Пробный режим очистки и запрет удаления активных задач.
 
-Use retrieval and prompting first. Fine-tuning is justified only for persistent behavior errors that survive better context, routing, and tool feedback.
+Критерий завершения: перезапуск или повторный запрос не приводит к двойному исполнению, а срок хранения локальных артефактов соблюдается автоматически.
 
-If fine-tuning is needed:
+## Этап 6 — Происхождение результата и усиление защиты
 
-- Train on reviewed Angular/Capacitor task-response pairs, not raw application source.
-- Include counterexamples for invented plugins, version guessing, invalid signal mutability, injector-scope errors, and obsolete mobile permissions.
-- Preserve skill/source provenance and license metadata.
-- Keep private code, credentials, signing data, production logs, and generated native artifacts out of datasets.
-- Split by task family to prevent near-duplicate leakage between train and evaluation sets.
-- Compare the tuned checkpoint against the unchanged base model on the frozen suite; reject regressions outside the trained categories.
+Приоритет: P1.
 
-Exit gate: statistically meaningful improvement on held-out evals without increased hallucination or reduced general Angular/Capacitor competence.
+Для каждого завершённого запуска формировать манифест доказательств:
 
-## Phase 6 — Remote service
+- исходный идентификатор коммита;
+- модель и параметры генерации;
+- хеши системных правил и конфигурации;
+- точный идентификатор Docker-образа;
+- хеш итогового патча;
+- результаты всех проверок;
+- подтверждённые личности автора и проверяющего;
+- временные метки.
 
-Status: planned after model quality gates.
+Расширить проверки безопасности сценариями чтения домашнего каталога, записи вне рабочей копии, выхода через символические и жёсткие ссылки, сетевого запроса, превышения числа процессов и диска, повторного продолжения и перезапуска во время ожидания решения.
 
-- Put authentication, TLS, request-size limits, concurrency limits, and timeouts in front of inference.
-- Restrict skill roots and reference-project roots with server-side allowlists.
-- Log operational metrics and selected source names, but not prompts containing private code by default.
-- Add health/readiness probes for endpoint reachability, exact model identity, skill availability, and context capacity.
-- Version the system prompt, retrieval configuration, eval suite, and model checkpoint independently for rollback.
+Критерий завершения: принятый патч однозначно связан с исходным кодом, образом исполнителя, конфигурацией и результатами проверок; попытки выхода из изоляции механически блокируются.
 
-Exit gate: a remote client can reproduce a benchmark run securely and identify the exact model/harness/skill versions used.
+## Этап 7 — Наблюдаемость и поэтапное развёртывание
 
-## Immediate next actions
+Приоритет: P1–P2.
 
-1. Tune the skill byte budget from the current 6 KB baseline to 12 KB, 24 KB, and 48 KB using frozen eval comparisons.
-2. Add 15–20 negative and cross-stack cases before collecting any training dataset.
-3. Implement automated eval reporting and three-run stability checks.
-4. Add agent tool-use, prompt-injection, and repair-loop evaluations.
-5. Add resumable approvals and a Linux container executor.
-6. Measure how runtime concurrency affects throughput, memory use, and single-request latency.
-7. Decide on fine-tuning only after the baseline failure categories are quantified.
+- Собирать длительность задачи и ожидания в очереди, число итераций и инструментов, долю успешных проверок, время ожидания решения, отказы политики и ошибки контейнера.
+- Не записывать полный текст запроса, ответа и патча в централизованные журналы по умолчанию.
+- Ввести теневой режим без применения изменений.
+- Затем включить одного пользователя и ограниченный список безопасных репозиториев.
+- Расширять доступ по результатам оценок качества, безопасности и задержки.
+- Поддерживать быстрый откат модели, конфигурации, правил и образа исполнителя.
+
+Критерий завершения: ухудшение качества или безопасности обнаруживается метриками, а предыдущая рабочая версия восстанавливается без изменения данных пользователя.
+
+## Этап 8 — Проверка мобильного развёртывания
+
+Приоритет: P2.
+
+- Собирать Android в Linux-конвейере.
+- Собирать iOS на отдельном узле macOS.
+- Проверять согласованность синхронизации Capacitor и конфигурации разрешений.
+- Добавить проверочные сценарии для платформенных адаптеров и модулей.
+- Никогда не передавать агентному исполнителю ключи подписи и учётные данные публикации.
+
+Критерий завершения: изменения, затрагивающие мобильную платформу, проходят соответствующую сборку и проверку без доступа агента к ключам выпуска.
+
+## Этап 9 — Решение о дополнительном обучении модели
+
+Статус: отложено до накопления измеримых данных.
+
+Сначала использовать выбор знаний, системные правила и обратную связь инструментов. Дополнительное обучение оправдано только для устойчивых ошибок поведения, которые не устраняются улучшением контекста и проверок.
+
+Если обучение потребуется:
+
+- использовать проверенные пары «задача — ответ», а не необработанный исходный код продукта;
+- добавить контрпримеры выдуманных модулей, версий и устаревших разрешений;
+- сохранять происхождение и лицензии источников;
+- исключить приватный код, секреты, материалы подписи и производственные журналы;
+- сравнивать новую версию с исходной моделью на неизменном контрольном наборе.
+
+Критерий завершения: статистически значимое улучшение на отложенных задачах без ухудшения общих знаний Angular и Capacitor.
+
+## Ближайшие действия
+
+1. Реализовать SQLite-хранилище состояния, транзакционную блокировку и одноразовые решения.
+2. Добавить безопасную очистку старых запусков с пробным режимом.
+3. Развернуть локальный TLS-шлюз и связать решения с подтверждённой личностью.
+4. Сформировать манифест происхождения результата.
+5. Расширить набор до 20–50 функциональных и негативных задач.
+6. Добавить испытания изоляции Docker и сценарии восстановления после сбоев.
+7. Подключить мобильные сборки и безопасную наблюдаемость.
+8. Возвращаться к вопросу дополнительного обучения только после количественного анализа устойчивых ошибок.

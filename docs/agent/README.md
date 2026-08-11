@@ -1,6 +1,6 @@
 # Controlled coding-agent runtime
 
-[Документация](../README.md) · [Архитектура](../architecture.md) · [Инструменты](tools-and-policy.md) · [Executors и API](executors-approvals-api.md) · [Worktree](worktrees-and-validation.md) · [Безопасность](../security.md)
+[Документация](../README.md) · [Архитектура](../architecture.md) · [Инструменты](tools-and-policy.md) · [Executors и API](executors-approvals-api.md) · [Worktree](worktrees-and-validation.md) · [Обособление и проверки](isolation-state-validation.md) · [Безопасность](../security.md)
 
 ## Что делает runtime агентным
 

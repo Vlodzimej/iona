@@ -2,6 +2,8 @@
 
 [Agent runtime](README.md) · [Tools и policy](tools-and-policy.md) · [Эксплуатация](../operations.md) · [Безопасность](../security.md)
 
+Связанное подробное объяснение жизненного цикла, состояния, одобрений и двух уровней проверки: [обособление, состояние и контроль качества](isolation-state-validation.md).
+
 ## Зачем нужен отдельный worktree
 
 Git worktree — дополнительная рабочая копия того же репозитория. Runtime создаёт её из committed `HEAD` в `.agent/worktrees/<run-id>` и работает только там.
