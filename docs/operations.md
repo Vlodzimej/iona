@@ -37,6 +37,12 @@ flowchart LR
 | `npm run agent:approve -- <id>`       | Одобрить exact protected action        |                                  нет |             только ignored state file |
 | `npm run agent:resume -- <run-id>`    | Продолжить paused run                  |                                   да |                       только worktree |
 | `npm run agent:api`                   | Запустить loopback Agent API           |                                   да |        через Docker isolated worktree |
+| `npm run opencode -- --repo PATH`     | OpenCode через внешний MCP harness     |                                   да |      только внешний isolated worktree |
+| `npm run harness:test`                | MCP/external-state integration tests   |                                  нет |                    временные fixtures |
+| `npm run harness -- prepare PATH`     | Собрать project runner по lockfile     |          Docker build скачивает deps |                   внешний image cache |
+| `npm run harness -- status REPO RUN`  | Показать состояние внешнего run        |                                  нет |                                   нет |
+| `npm run harness -- approve REPO ID`  | Одобрить exact protected patch         |                                  нет |             только внешний state file |
+| `npm run harness -- apply REPO RUN`   | Применить sealed validated patch       |                                  нет |      да, после повторных guard checks |
 | `npm run verify`                      | Полный repository gate                 |           нет для source-only checks | build artifacts по правилам toolchain |
 
 ## Конфигурация модели
@@ -78,6 +84,8 @@ jq -c '{timestamp, type, iteration, tool, result}' \
 ```
 
 Не прикладывайте полный log к публичной issue: сначала проверьте task text, patches и model output на чувствительные данные.
+
+Для внешнего OpenCode run состояние находится не в проекте, а в `~/.local/share/ionic-llm-harness/repositories/<repository-id>/runs/<run-id>`. Команды review, approval и apply приведены в [руководстве по внешним проектам](harness/external-projects-and-opencode.md).
 
 Если status равен `waiting_approval`, сначала изучите точный patch в worktree и paths в `agent:status`. Решение и продолжение — два отдельных действия; это позволяет отложить resume или выполнить его после перезапуска процесса. Полный lifecycle описан в [разделе об executors и API](agent/executors-approvals-api.md).
 

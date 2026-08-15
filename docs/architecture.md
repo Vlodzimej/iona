@@ -12,6 +12,7 @@ flowchart TB
         Q["ai:ask — read-only вопрос"]
         T["agent — задача на изменение"]
         RA["Agent API — удалённая review-only задача"]
+        OC["OpenCode — внешний проект через MCP"]
         C["ai:context — диагностика retrieval"]
     end
 
@@ -38,6 +39,12 @@ flowchart TB
         EX["Executor boundary"]
     end
 
+    subgraph EM["External harness mode"]
+        MCP["stdio MCP tool server"]
+        REG["Repository registry"]
+        EWT["External state + worktree"]
+    end
+
     LM["gpt-oss-20b"]
     MAIN["Primary Git worktree"]
 
@@ -45,6 +52,10 @@ flowchart TB
     Q --> R
     T --> LOOP
     RA --> LOOP
+    OC <--> API
+    OC --> MCP --> POL
+    MCP --> REG --> EWT
+    EWT --> EX
     CFG --> R
     AS --> R
     CS --> R
@@ -99,6 +110,10 @@ Harness решает четыре задачи:
 - применение результата становится отдельным проверяемым действием.
 
 Подробнее: [worktree и валидация](agent/worktrees-and-validation.md).
+
+### 5. OpenCode и внешний MCP harness
+
+Для другого репозитория OpenCode заменяет встроенный model/tool loop и становится единственным reasoning agent. Он запускается из нейтрального внешнего каталога: встроенные read/edit/bash tools запрещены, а целевой project tree доступен только через `ionic_harness_*`. MCP server переиспользует те же path policy и Executor, но хранит repository registry, worktrees, runs и approvals вне подключённого проекта. Подробный lifecycle: [внешние проекты и OpenCode](harness/external-projects-and-opencode.md).
 
 ## Поток read-only запроса
 

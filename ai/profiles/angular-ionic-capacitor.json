@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "angular-ionic-capacitor",
+  "description": "Angular, Ionic and Capacitor project validation without harness self-tests.",
+  "checks": {
+    "fast": [
+      ["npm", "run", "--if-present", "format:check"],
+      ["npm", "test", "--", "--watch=false"]
+    ],
+    "build": [
+      ["npm", "run", "--if-present", "format:check"],
+      ["npm", "run", "build"]
+    ],
+    "full": [
+      ["npm", "run", "--if-present", "format:check"],
+      ["npm", "run", "build"],
+      ["npm", "test", "--", "--watch=false"],
+      ["npm", "run", "--if-present", "cap:check"]
+    ]
+  },
+  "requiredFinishCheck": "full"
+}

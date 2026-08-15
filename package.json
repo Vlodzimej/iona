@@ -12,7 +12,7 @@
     "cap:check": "node scripts/capacitor/check-local.mjs",
     "format": "prettier --write --ignore-unknown .",
     "format:check": "prettier --check --ignore-unknown .",
-    "verify": "npm run docs:check && npm run format:check && npm run build && npm test -- --watch=false && npm run cap:doctor && npm run ai:doctor && npm run agent:doctor -- --source-only && npm run agent:test",
+    "verify": "npm run docs:check && npm run format:check && npm run build && npm test -- --watch=false && npm run cap:doctor && npm run ai:doctor && npm run agent:doctor -- --source-only && npm run agent:test && npm run harness:test",
     "docs:check": "node scripts/docs/check-links.mjs",
     "ai:doctor": "node scripts/local-ai/doctor.mjs",
     "ai:context": "node scripts/local-ai/build-context.mjs",
@@ -21,6 +21,9 @@
     "opencode": "node scripts/opencode/run.mjs",
     "opencode:config": "node scripts/opencode/run.mjs debug config --pure",
     "opencode:models": "node scripts/opencode/run.mjs models lmstudio --pure",
+    "harness": "node scripts/harness/control.mjs",
+    "harness:mcp": "node scripts/harness/mcp.mjs",
+    "harness:test": "node --test scripts/harness/tests/*.test.mjs scripts/opencode/tests/*.test.mjs",
     "agent": "node scripts/agent/run.mjs",
     "agent:doctor": "node scripts/agent/doctor.mjs",
     "agent:api": "node scripts/agent/api.mjs",
@@ -59,13 +62,19 @@
     "@capacitor/cli": "8.5.0",
     "@capacitor/ios": "8.5.0",
     "@ionic/angular-toolkit": "12.3.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "jsdom": "^28.0.0",
     "prettier": "^3.8.1",
     "typescript": "~6.0.2",
-    "vitest": "^4.0.8"
+    "vitest": "^4.0.8",
+    "zod": "^4.4.3"
   },
   "engines": {
     "node": ">=24.15.0"
+  },
+  "overrides": {
+    "@hono/node-server": "2.1.0",
+    "uuid": "11.1.1"
   },
   "allowScripts": {
     "@parcel/watcher@2.6.0": true,

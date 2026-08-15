@@ -36,7 +36,7 @@ const config = {
   searchTimeoutMs: 10000,
   allowedWritePatterns: ['src/**'],
   protectedWritePatterns: ['package.json'],
-  deniedPatterns: ['.git/**', '.env*', 'node_modules/**'],
+  deniedPatterns: ['.git', '.git/**', '.env*', 'node_modules', 'node_modules/**'],
   checks: {},
 };
 
@@ -116,6 +116,7 @@ test('protected and denied patch targets cannot bypass policy', (context) => {
   });
   assert.equal(approvedTools.execute('apply_patch', { patch: protectedPatch }).ok, true);
   assert.throws(() => tools.execute('read_file', { path: '.env.local' }), /denied/u);
+  assert.throws(() => tools.execute('read_file', { path: '.git' }), /denied/u);
   assert.throws(() => tools.execute('search', { query: 'secret', glob: '.env*' }), /denied path/u);
 });
 

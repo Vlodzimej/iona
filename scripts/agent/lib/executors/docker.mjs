@@ -11,8 +11,12 @@ function mount(source, destination, readOnly = false) {
 
 export function dockerRunArguments(context, action, actionArguments = []) {
   const docker = context.config.executor.docker;
-  const temporary = resolve(context.worktreeRoot, '.agent-tmp');
-  mkdirSync(temporary, { recursive: true });
+  const runtimeRoot = context.runRoot
+    ? resolve(context.runRoot)
+    : resolve(context.worktreeRoot, '.agent-tmp');
+  const temporary = resolve(runtimeRoot, 'tmp');
+  mkdirSync(runtimeRoot, { recursive: true, mode: 0o700 });
+  mkdirSync(temporary, { recursive: true, mode: 0o700 });
   const uid = process.getuid?.() ?? 1000;
   const gid = process.getgid?.() ?? 1000;
   const passwdPath = resolve(temporary, 'container-passwd');
@@ -23,6 +27,9 @@ export function dockerRunArguments(context, action, actionArguments = []) {
   writeFileSync(groupPath, `agent:x:${gid}:\n`, { mode: 0o600 });
   chmodSync(passwdPath, 0o600);
   chmodSync(groupPath, 0o600);
+  const configPath = resolve(runtimeRoot, 'executor-config.json');
+  writeFileSync(configPath, JSON.stringify(context.config) + '\n', { mode: 0o600 });
+  chmodSync(configPath, 0o600);
   const args = [
     'run',
     '--rm',
@@ -53,6 +60,8 @@ export function dockerRunArguments(context, action, actionArguments = []) {
     mount(passwdPath, '/etc/passwd', true),
     '--mount',
     mount(groupPath, '/etc/group', true),
+    '--mount',
+    mount(configPath, '/opt/agent/config.json', true),
     '--tmpfs',
     `/tmp:rw,noexec,nosuid,size=${docker.temporaryStorage}`,
     '--env',

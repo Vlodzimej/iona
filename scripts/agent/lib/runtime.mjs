@@ -79,6 +79,7 @@ function toolContext(config, state, approvalGrant) {
   return {
     config,
     projectRoot,
+    runRoot: state.runRoot,
     worktreeRoot: state.worktreeRoot,
     allowProtected: state.options.allowProtected === true,
     allowHostExecution:

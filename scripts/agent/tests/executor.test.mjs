@@ -7,10 +7,15 @@ import { dockerRunArguments } from '../lib/executors/docker.mjs';
 
 test('Docker executor has no network, drops privileges, and mounts only explicit roots', (context) => {
   const worktreeRoot = mkdtempSync(resolve(tmpdir(), 'ionic-docker-executor-'));
-  context.after(() => rmSync(worktreeRoot, { recursive: true, force: true }));
+  const runRoot = mkdtempSync(resolve(tmpdir(), 'ionic-docker-run-'));
+  context.after(() => {
+    rmSync(worktreeRoot, { recursive: true, force: true });
+    rmSync(runRoot, { recursive: true, force: true });
+  });
   const args = dockerRunArguments(
     {
       worktreeRoot,
+      runRoot,
       config: {
         executor: {
           docker: {
@@ -36,6 +41,7 @@ test('Docker executor has no network, drops privileges, and mounts only explicit
   assert.match(joined, /--pids-limit 256/u);
   assert.match(joined, /dst=\/etc\/passwd,readonly/u);
   assert.match(joined, /dst=\/etc\/group,readonly/u);
+  assert.match(joined, /dst=\/opt\/agent\/config\.json,readonly/u);
   assert.doesNotMatch(joined, /docker\.sock|\.env\.local-ai/u);
   assert.deepEqual(args.slice(-3), ['test-runner:node-26', 'run-checks', 'fast']);
 });

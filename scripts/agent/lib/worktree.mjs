@@ -38,7 +38,7 @@ export function createRunId() {
 
 export function createAgentWorktree(projectRoot, runId = createRunId(), options = {}) {
   assertCleanWorktree(projectRoot);
-  const agentRoot = resolve(projectRoot, '.agent');
+  const agentRoot = options.agentRoot ? resolve(options.agentRoot) : resolve(projectRoot, '.agent');
   const worktreeRoot = resolve(agentRoot, 'worktrees', runId);
   const runRoot = resolve(agentRoot, 'runs', runId);
   mkdirSync(resolve(agentRoot, 'worktrees'), { recursive: true });

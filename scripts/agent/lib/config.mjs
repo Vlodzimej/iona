@@ -1,9 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-export function loadAgentConfig(projectRoot) {
-  const path = resolve(projectRoot, 'ai/agent.json');
-  const config = JSON.parse(readFileSync(path, 'utf8'));
+export function validateAgentConfig(config, source = 'ai/agent.json') {
   const positiveIntegers = [
     'maximumIterations',
     'maximumToolCalls',
@@ -16,20 +14,20 @@ export function loadAgentConfig(projectRoot) {
   ];
 
   if (config.schemaVersion !== 2) {
-    throw new Error('Unsupported ai/agent.json schemaVersion.');
+    throw new Error('Unsupported ' + source + ' schemaVersion.');
   }
   for (const key of positiveIntegers) {
     if (!Number.isInteger(config[key]) || config[key] < 1) {
-      throw new Error('ai/agent.json ' + key + ' must be a positive integer.');
+      throw new Error(source + ' ' + key + ' must be a positive integer.');
     }
   }
   for (const key of ['allowedWritePatterns', 'protectedWritePatterns', 'deniedPatterns']) {
     if (!Array.isArray(config[key]) || config[key].some((value) => typeof value !== 'string')) {
-      throw new Error('ai/agent.json ' + key + ' must be an array of strings.');
+      throw new Error(source + ' ' + key + ' must be an array of strings.');
     }
   }
   if (!config.checks?.[config.requiredFinishCheck]) {
-    throw new Error('ai/agent.json requiredFinishCheck must name a configured check profile.');
+    throw new Error(source + ' requiredFinishCheck must name a configured check profile.');
   }
   for (const [profile, commands] of Object.entries(config.checks)) {
     if (
@@ -45,7 +43,7 @@ export function loadAgentConfig(projectRoot) {
     }
   }
   if (!['local', 'docker'].includes(config.executor?.default)) {
-    throw new Error('ai/agent.json executor.default must be local or docker.');
+    throw new Error(source + ' executor.default must be local or docker.');
   }
   const docker = config.executor?.docker;
   if (
@@ -62,10 +60,10 @@ export function loadAgentConfig(projectRoot) {
     !Number.isInteger(docker.pidsLimit) ||
     docker.pidsLimit < 1
   ) {
-    throw new Error('ai/agent.json executor.docker is invalid or enables networking.');
+    throw new Error(source + ' executor.docker is invalid or enables networking.');
   }
   if (!Number.isInteger(config.approvals?.ttlMs) || config.approvals.ttlMs < 1000) {
-    throw new Error('ai/agent.json approvals.ttlMs must be at least 1000.');
+    throw new Error(source + ' approvals.ttlMs must be at least 1000.');
   }
   if (
     typeof config.api?.hostname !== 'string' ||
@@ -79,7 +77,12 @@ export function loadAgentConfig(projectRoot) {
     typeof config.api.tokenEnvironmentVariable !== 'string' ||
     !config.api.tokenEnvironmentVariable
   ) {
-    throw new Error('ai/agent.json api configuration is invalid.');
+    throw new Error(source + ' api configuration is invalid.');
   }
   return config;
+}
+
+export function loadAgentConfig(projectRoot) {
+  const path = resolve(projectRoot, 'ai/agent.json');
+  return validateAgentConfig(JSON.parse(readFileSync(path, 'utf8')));
 }

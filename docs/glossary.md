@@ -180,6 +180,12 @@ Large Language Model — большая языковая модель. Она п
 
 Локальный runtime/сервер для запуска моделей, который может предоставлять OpenAI-compatible endpoint. В текущей конфигурации через него доступна `gpt-oss-20b`.
 
+<a id="term-mcp"></a>
+
+### MCP
+
+Model Context Protocol — стандарт подключения внешних tools, prompts и resources к ИИ-агенту. В external-project режиме OpenCode общается с локальным stdio MCP server, а тот предоставляет только ограниченные операции harness. MCP является транспортом инструментов, но сам по себе не создаёт sandbox или policy: эти свойства реализует harness.
+
 ## Н–Р
 
 <a id="term-observation"></a>

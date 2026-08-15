@@ -9,6 +9,7 @@ The connected Russian-language documentation portal explains the project from fi
 - [Documentation home](docs/README.md)
 - [Architecture](docs/architecture.md)
 - [Harness](docs/harness/README.md)
+- [External projects and OpenCode](docs/harness/external-projects-and-opencode.md)
 - [OpenCode setup](docs/opencode.md)
 - [Build your own harness](docs/build-your-own-harness.md)
 - [Glossary](docs/glossary.md)
@@ -50,6 +51,7 @@ npm run cap:doctor
 npm run ai:doctor
 npm run agent:doctor
 npm run agent:test
+npm run harness:test
 ```
 
 Angular persistent disk cache is disabled for deterministic agent runs across attached environments.
@@ -153,18 +155,52 @@ Run transcripts can contain task text, patches, and model output. They are
 stored locally under `.agent/runs` with restricted file permissions and are
 never committed.
 
+## External projects through OpenCode
+
+OpenCode can be the sole reasoning agent while this repository remains an
+external security and execution harness. No harness source, prompt, policy, or
+state file is copied into the target repository:
+
+```bash
+npm run agent:docker:build
+npm run harness -- prepare /absolute/path/to/another-project
+npm run opencode -- --repo /absolute/path/to/another-project
+```
+
+The launcher registers the canonical Git repository, starts OpenCode from a
+neutral state directory, injects a higher-precedence configuration that denies
+its built-in file and shell tools, and exposes only the local
+`ionic_harness_*` MCP tools. OpenCode still uses the configured `gpt-oss-20b`
+and global `~/.agents/skills`, but all repository reads, patches, and checks go
+through the harness policy.
+
+Runs, exact approvals, logs, and detached Git worktrees live under
+`~/.local/share/ionic-llm-harness` by default. A successfully validated patch
+is sealed but not copied to the primary checkout. Review and apply it with the
+local human-only control command printed by the run:
+
+```bash
+npm run harness -- status <repository-id> <run-id> --include-patch
+npm run harness -- approve <repository-id> <approval-id>
+npm run harness -- apply <repository-id> <run-id>
+```
+
+See [External projects and OpenCode](docs/harness/external-projects-and-opencode.md)
+for the trust model, tool lifecycle, profiles, and recovery commands.
+
 ## Repository layout
 
 ```text
 ai/                  Model/agent policy, prompts, evaluations, and roadmap
 scripts/local-ai/    Skill retrieval and OpenAI-compatible model client
 scripts/agent/       Isolated worktrees, tool policy, agent loop, and tests
+scripts/harness/     External repository registry, MCP server, state, and controls
 docker/              Hardened no-network agent runner image
 scripts/opencode/    OpenCode launcher for the ignored local connection file
 src/app/             Blank standalone Ionic Angular application
 src/theme/           Shared Ionic design tokens
 capacitor.config.ts  Provider-neutral Capacitor configuration
-opencode.json        OpenCode provider, default model, and approval policy
+opencode.json        Base OpenCode provider settings; launcher enforces MCP policy
 AGENTS.md             Rules for coding agents and local models
 ```
 

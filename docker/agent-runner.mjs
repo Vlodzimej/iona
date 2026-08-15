@@ -16,7 +16,7 @@ const dependencyPath = resolve(workspace, 'node_modules');
 const imageDependencies = '/opt/agent/node_modules';
 
 function config() {
-  return JSON.parse(readFileSync(resolve(workspace, 'ai/agent.json'), 'utf8'));
+  return JSON.parse(readFileSync('/opt/agent/config.json', 'utf8'));
 }
 
 function limitedInput(maximumBytes) {
@@ -58,16 +58,24 @@ function withDependencies(callback) {
 
 function applyPatch(agentConfig) {
   const patch = limitedInput(agentConfig.maximumPatchBytes);
-  execFileSync('git', ['apply', '--check', '--whitespace=error-all', '-'], {
-    cwd: workspace,
-    input: patch,
-    stdio: ['pipe', 'pipe', 'pipe'],
-  });
-  execFileSync('git', ['apply', '--whitespace=nowarn', '-'], {
-    cwd: workspace,
-    input: patch,
-    stdio: ['pipe', 'pipe', 'pipe'],
-  });
+  execFileSync(
+    'git',
+    ['apply', '--no-index', '--directory=workspace', '--check', '--whitespace=error-all', '-'],
+    {
+      cwd: '/',
+      input: patch,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    },
+  );
+  execFileSync(
+    'git',
+    ['apply', '--no-index', '--directory=workspace', '--whitespace=nowarn', '-'],
+    {
+      cwd: '/',
+      input: patch,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    },
+  );
   return { ok: true };
 }
 
