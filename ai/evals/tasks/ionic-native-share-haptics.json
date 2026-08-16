@@ -1,0 +1,32 @@
+{
+  "id": "ionic-native-share-haptics",
+  "title": "Combine native share and haptic feedback",
+  "category": "ionic",
+  "prompt": "Предложи минимальную реализацию для Ionic Capacitor: после явного нажатия пользователя открыть native share sheet, а при успешном результате дать лёгкий haptic feedback. Укажи только необходимые official packages, Web/Android/iOS availability, обработку ошибок и когда нужен cap sync. Не используй код проекта и закончи списком Skill sources.",
+  "readOnly": true,
+  "expectedSkills": ["ionic-native-essentials"],
+  "expectedReferences": [
+    "ionic-native-essentials/references/share.md",
+    "ionic-native-essentials/references/haptics.md"
+  ],
+  "checks": [
+    {
+      "type": "contains",
+      "values": [
+        "@capacitor/share",
+        "@capacitor/haptics",
+        "Share.share",
+        "Web",
+        "Android",
+        "iOS",
+        "npx cap sync",
+        "Skill sources"
+      ]
+    },
+    {
+      "type": "not-contains",
+      "values": ["cordova-plugin-x-socialsharing", "@ionic-native/social-sharing", "<|channel|>"]
+    }
+  ],
+  "timeoutSeconds": 120
+}

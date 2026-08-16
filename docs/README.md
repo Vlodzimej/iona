@@ -36,7 +36,11 @@ flowchart LR
 - [Быстрый старт](getting-started.md) — установка, подключение модели, первый вопрос и первая агентная задача.
 - [Архитектура](architecture.md) — компоненты системы, доверительные границы и потоки данных.
 - [Harness](harness/README.md) — понятие, состав и отличие от LLM и агента.
+  - [Использование в существующих проектах](harness/using-with-existing-projects.md) — пошаговая установка, подключение, запуск, review и обновление общего harness.
   - [Внешние проекты и OpenCode](harness/external-projects-and-opencode.md) — один установленный harness, MCP-инструменты, внешние worktree и human-only применение патча.
+  - [Обязательные skills](harness/required-skills.md) — user-scope packages, команды установки и trust allowlist.
+  - [Покрытие skills](harness/skill-coverage.md) — SCSS, native debugging, testing, security, delivery и остальные этапы lifecycle.
+  - [Visual debugging](harness/visual-debugging.md) — текущие ограничения и спецификация DOM/screenshot/image-diff расширения.
   - [Извлечение контекста](harness/context-retrieval.md) — skills, маршрутизация, chunking, ranking и бюджеты.
   - [Протокол модели](harness/model-protocol.md) — OpenAI-compatible API, сообщения, tool calls и обработка ответов.
   - [Оценка качества](harness/evaluations.md) — eval-задачи, метрики и регрессионный цикл.

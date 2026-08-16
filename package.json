@@ -1,6 +1,9 @@
 {
   "name": "ionic-llm-boilerplate",
   "version": "0.0.0",
+  "bin": {
+    "ionic-llm-harness": "scripts/harness/cli.mjs"
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -26,6 +29,7 @@
     "opencode:config": "node scripts/opencode/run.mjs debug config --pure",
     "opencode:models": "node scripts/opencode/run.mjs models lmstudio --pure",
     "harness": "node scripts/harness/control.mjs",
+    "harness:doctor": "node scripts/harness/doctor.mjs",
     "harness:mcp": "node scripts/harness/mcp.mjs",
     "harness:test": "node --test scripts/harness/tests/*.test.mjs scripts/opencode/tests/*.test.mjs",
     "agent": "node scripts/agent/run.mjs",

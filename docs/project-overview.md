@@ -49,17 +49,19 @@ flowchart TB
 
 ### Skills
 
-Skill — это пакет инструкций и справочных материалов для определённой области. В текущей конфигурации разрешены два внешних пакета:
+Skill — это пакет инструкций и справочных материалов для определённой области. В текущей compact retrieval конфигурации разрешены четыре skills:
 
 - `angular-developer` — архитектура Angular, signals, формы, HTTP, маршрутизация, тестирование и доступность;
 - `capacitor-plugins` — выбор официальных и резервных плагинов, платформенные разрешения и нативные возможности.
+- `ionic-native-essentials` — типовые official Capacitor integrations для Ionic;
+- `ionic-deep-links` — URL schemes, Universal Links и Android App Links.
 
-Skills не копируются в репозиторий. Harness читает актуальные версии из `~/.agents/skills` при каждом запросе.
+Skills не копируются в репозиторий. Harness читает актуальные версии из `~/.agents/skills` при каждом запросе. OpenCode дополнительно выбирает task-specific skills из двух полностью установленных Ionic/Capgo repository packages.
 
 ## Что система умеет сейчас
 
 - Подключаться к `gpt-oss-20b` через OpenAI-compatible Chat Completions endpoint.
-- Подбирать task-specific контекст из двух allowlisted skills.
+- Подбирать task-specific контекст из четырёх allowlisted skills.
 - Понимать русские и английские термины маршрутизации.
 - Опционально добавлять файлы текущего проекта как **недоверенный** пример.
 - Отделять простой вопрос к модели от задачи с изменением кода.

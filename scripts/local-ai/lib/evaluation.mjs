@@ -9,7 +9,12 @@ const categories = new Set([
   'testing',
   'security',
 ]);
-const skillNames = new Set(['angular-developer', 'capacitor-plugins']);
+const skillNames = new Set([
+  'angular-developer',
+  'capacitor-plugins',
+  'ionic-native-essentials',
+  'ionic-deep-links',
+]);
 const checkTypes = new Set(['contains', 'contains-any', 'not-contains', 'not-matches']);
 
 function requireString(value, label, minimumLength = 1) {

@@ -11,7 +11,7 @@ import { projectRoot } from '../lib/env.mjs';
 
 test('all frozen tasks satisfy the evaluation contract and retrieval expectations', async (context) => {
   const tasks = loadEvaluationTasks(resolve(projectRoot, 'ai/evals/tasks'));
-  assert.equal(tasks.length, 10);
+  assert.equal(tasks.length, 12);
   assert.deepEqual(tasks.map((task) => task.id).sort(), [
     'angular-route-guard-security',
     'angular-signal-forms',
@@ -20,6 +20,8 @@ test('all frozen tasks satisfy the evaluation contract and retrieval expectation
     'capacitor-filesystem-transfer',
     'capacitor-network-offline',
     'capacitor-plugin-selection',
+    'ionic-deep-links-routing',
+    'ionic-native-share-haptics',
     'practical-angular-accessible-state',
     'practical-camera-minimal-permissions',
     'practical-plugin-api-evidence',

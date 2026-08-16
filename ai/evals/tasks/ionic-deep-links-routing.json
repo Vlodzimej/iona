@@ -1,0 +1,31 @@
+{
+  "id": "ionic-deep-links-routing",
+  "title": "Route verified deep links safely",
+  "category": "ionic",
+  "prompt": "Спроектируй provider-neutral deep-link flow для Ionic Capacitor: custom URL scheme для OAuth callback, iOS Universal Link и Android App Link для password reset, включая cold start и передачу URL в Angular router. Укажи необходимые official package/API и platform verification files. Не используй код проекта и закончи списком Skill sources.",
+  "readOnly": true,
+  "expectedSkills": ["ionic-deep-links"],
+  "expectedReferences": [
+    "ionic-deep-links/references/custom-scheme.md",
+    "ionic-deep-links/references/ios-universal-links.md",
+    "ionic-deep-links/references/android-app-links.md"
+  ],
+  "checks": [
+    {
+      "type": "contains",
+      "values": [
+        "@capacitor/app",
+        "appUrlOpen",
+        "getLaunchUrl",
+        "apple-app-site-association",
+        "assetlinks.json",
+        "Skill sources"
+      ]
+    },
+    {
+      "type": "not-contains",
+      "values": ["cordova-plugin-customurlscheme", "@ionic-native/deeplinks", "<|channel|>"]
+    }
+  ],
+  "timeoutSeconds": 120
+}

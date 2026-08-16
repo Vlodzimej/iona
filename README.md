@@ -9,7 +9,11 @@ The connected Russian-language documentation portal explains the project from fi
 - [Documentation home](docs/README.md)
 - [Architecture](docs/architecture.md)
 - [Harness](docs/harness/README.md)
+- [Using the harness with existing projects](docs/harness/using-with-existing-projects.md)
 - [External projects and OpenCode](docs/harness/external-projects-and-opencode.md)
+- [Required system skills](docs/harness/required-skills.md)
+- [Skill coverage across mobile development](docs/harness/skill-coverage.md)
+- [Visual debugging and mockup comparison](docs/harness/visual-debugging.md)
 - [OpenCode setup](docs/opencode.md)
 - [Build your own harness](docs/build-your-own-harness.md)
 - [Glossary](docs/glossary.md)
@@ -74,6 +78,13 @@ The harness loads these live skills for every request:
 
 - `~/.agents/skills/angular-developer`
 - `~/.agents/skills/capacitor-plugins`
+- `~/.agents/skills/ionic-native-essentials`
+- `~/.agents/skills/ionic-deep-links`
+
+OpenCode can additionally load task-specific skills from the globally installed
+`erkamyaman/ionic-capacitor-skills` and `Cap-go/capgo-skills` packages. Install
+commands, upstream sources, and allowlist rules are documented in
+[Required system skills](docs/harness/required-skills.md).
 
 Create the ignored local connection file and configure an OpenAI-compatible
 endpoint:
@@ -162,9 +173,11 @@ external security and execution harness. No harness source, prompt, policy, or
 state file is copied into the target repository:
 
 ```bash
+npm link
 npm run agent:docker:build
-npm run harness -- prepare /absolute/path/to/another-project
-npm run opencode -- --repo /absolute/path/to/another-project
+ionic-llm-harness doctor --repo /absolute/path/to/another-project
+ionic-llm-harness prepare /absolute/path/to/another-project
+ionic-llm-harness opencode --repo /absolute/path/to/another-project
 ```
 
 The launcher registers the canonical Git repository, starts OpenCode from a
@@ -180,13 +193,15 @@ is sealed but not copied to the primary checkout. Review and apply it with the
 local human-only control command printed by the run:
 
 ```bash
-npm run harness -- status <repository-id> <run-id> --include-patch
-npm run harness -- approve <repository-id> <approval-id>
-npm run harness -- apply <repository-id> <run-id>
+ionic-llm-harness status <repository-id> <run-id> --include-patch
+ionic-llm-harness approve <repository-id> <approval-id>
+ionic-llm-harness apply <repository-id> <run-id>
 ```
 
 See [External projects and OpenCode](docs/harness/external-projects-and-opencode.md)
-for the trust model, tool lifecycle, profiles, and recovery commands.
+for the trust model, tool lifecycle, profiles, and recovery commands. The exact
+user-scope skill dependencies and install commands are documented in
+[Required system skills](docs/harness/required-skills.md).
 
 ## Repository layout
 

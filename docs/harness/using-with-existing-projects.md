@@ -1,0 +1,334 @@
+# Использование harness в существующих проектах
+
+[Документация](../README.md) · [Обязательные skills](required-skills.md) · [Архитектура внешнего режима](external-projects-and-opencode.md) · [OpenCode](../opencode.md) · [Диагностика](../operations.md)
+
+Это практическое руководство позволяет подключить общий harness, OpenCode и локальную модель к уже существующему Angular/Ionic/Capacitor-проекту, не добавляя в него исходники, prompts или конфигурацию harness.
+
+После настройки работа выглядит так:
+
+```bash
+cd /absolute/path/to/existing-project
+ionic-llm-harness doctor --repo "$PWD"
+ionic-llm-harness prepare "$PWD"
+ionic-llm-harness opencode --repo "$PWD"
+```
+
+Harness установлен один раз и обслуживает любое количество проектов. Каждый запуск использует отдельный Git worktree и внешний state directory.
+
+## 1. Что требуется
+
+### На компьютере разработчика
+
+- Node.js 24.15 или новее; рекомендуемая версия задаётся `.nvmrc` общего harness.
+- npm, Git и OpenCode в `PATH`.
+- Запущенный Docker daemon.
+- Доступ к OpenAI-compatible endpoint с `gpt-oss-20b`.
+- Три [обязательных global skill source](required-skills.md).
+
+### В целевом проекте
+
+- Git repository с committed `HEAD` и чистым primary checkout.
+- Обычные файлы `package.json` и `package-lock.json`.
+- Обязательные npm scripts `build` и `test`.
+- Совместимость dependency tree с Node.js 26 в Linux runner image.
+- Опциональные scripts `format:check` и `cap:check`, если проект их предоставляет.
+
+Текущий профиль `angular-ionic-capacitor` использует npm. Проекты на pnpm/Yarn, другой версии Node или другом stack требуют отдельного профиля и runner в общей установке harness. Их не нужно добавлять в целевой проект.
+
+## 2. Одноразовая установка общего harness
+
+Выберите постоянный каталог вне подключаемых проектов. В примерах используется переменная только для удобства текущей terminal session:
+
+```bash
+export IONIC_HARNESS_HOME=/absolute/path/to/ionic-llm-boilerplate
+cd "$IONIC_HARNESS_HOME"
+nvm use
+npm ci
+```
+
+Не размещайте общий harness внутри целевого repository. Внешний state root также не должен пересекаться с target root; по умолчанию он находится в `~/.local/share/ionic-llm-harness`.
+
+### Установить skills
+
+```bash
+npx skills add angular/skills@angular-developer -g -y
+npx skills add erkamyaman/ionic-capacitor-skills -g -y
+npx skills add Cap-go/capgo-skills -g -y
+```
+
+Skills устанавливаются в `~/.agents/skills` один раз для всех проектов. Не копируйте `.agents/` или `skills-lock.json` в target repository.
+
+### Настроить модель
+
+Конфигурация соединения хранится только в ignored-файле общего harness:
+
+```bash
+cd "$IONIC_HARNESS_HOME"
+cp .env.local-ai.example .env.local-ai
+```
+
+Укажите в `.env.local-ai` OpenAI-compatible URL, точный model ID и token, если endpoint его требует:
+
+```dotenv
+LOCAL_AI_BASE_URL=http://<lm-studio-host>:1234/v1
+LOCAL_AI_MODEL=gpt-oss-20b
+LOCAL_AI_API_KEY=
+```
+
+Не создавайте `.env.local-ai` в подключаемом проекте. Launcher всегда загружает его из общей установки.
+
+Проверьте retrieval и соединение:
+
+```bash
+cd "$IONIC_HARNESS_HOME"
+npm run ai:doctor
+npm run ai:smoke
+```
+
+### Подготовить Docker Executor
+
+```bash
+cd "$IONIC_HARNESS_HOME"
+npm run agent:docker:build
+npm run agent:doctor
+```
+
+Base image содержит доверенный runner. Dependencies каждого target project собираются позже в отдельный image по его `package.json` и `package-lock.json`.
+
+### Установить удобную CLI-команду
+
+```bash
+cd "$IONIC_HARNESS_HOME"
+npm link
+ionic-llm-harness --help
+```
+
+`npm link` создаёт user-scope команду `ionic-llm-harness`, но не копирует package в каждый проект. При использовании `nvm` link относится к активной версии Node; после смены Node его может потребоваться создать заново.
+
+## 3. Подключение проекта
+
+Задайте путь и выполните read-only preflight:
+
+```bash
+export TARGET_PROJECT=/absolute/path/to/existing-project
+ionic-llm-harness doctor --repo "$TARGET_PROJECT"
+```
+
+`doctor` проверяет:
+
+- версию Node и доступность npm, Git, OpenCode и Docker;
+- наличие dependencies общей установки;
+- обязательный footprint трёх global sources и routed references compact retrieval;
+- наличие model endpoint без вывода его значения;
+- canonical Git root и чистоту checkout;
+- `package.json`, `package-lock.json` и внешний state root.
+
+Команда ничего не пишет в target. Для первичной диагностики без Docker можно использовать:
+
+```bash
+ionic-llm-harness doctor --repo "$TARGET_PROJECT" --source-only
+```
+
+Перед coding run повторите `doctor` без `--source-only`: Docker Executor является обязательной частью полного workflow.
+
+### Собрать project runner
+
+```bash
+ionic-llm-harness prepare "$TARGET_PROJECT"
+```
+
+При первом запуске Docker выполняет `npm ci` только по двум package manifests. Исходный код target не включается в build context. Image кэшируется по SHA-256; после изменения `package.json` или `package-lock.json` следующая команда `prepare` создаст новый image.
+
+## 4. Запуск OpenCode
+
+Интерактивная session:
+
+```bash
+ionic-llm-harness opencode --repo "$TARGET_PROJECT"
+```
+
+Одноразовая задача:
+
+```bash
+ionic-llm-harness opencode \
+  --repo "$TARGET_PROJECT" \
+  run "Добавь feature, тесты и проверь production build"
+```
+
+Launcher:
+
+1. Регистрирует canonical path проекта во внешнем repository registry.
+2. Запускает OpenCode из нейтрального каталога, а не из target tree.
+3. Подключает настроенную локальную модель.
+4. Запрещает встроенные file, edit и shell tools OpenCode.
+5. Оставляет только global skills и `ionic_harness_*` MCP tools.
+
+OpenCode автоматически создаёт run через `ionic_harness_begin`, читает target через bounded tools, отправляет validated unified diffs и выполняет allowlisted checks в Docker.
+
+## 5. Review, approval и применение результата
+
+OpenCode сообщает `repositoryId`, `runId`, status и validation result. Сохраните эти идентификаторы до завершения работы.
+
+### Protected patch
+
+Изменения dependencies, tooling, native platform, CI и защищённой конфигурации требуют отдельного решения человека. При status `waiting_approval` OpenCode выводит `approvalId` и точные paths.
+
+Просмотрите diff и одобрите или отклоните запрос вне OpenCode:
+
+```bash
+ionic-llm-harness status <repository-id> <run-id> --include-patch
+ionic-llm-harness approve <repository-id> <approval-id> --actor <name>
+# или
+ionic-llm-harness reject <repository-id> <approval-id> --actor <name>
+```
+
+После approval попросите OpenCode повторить идентичный patch. Изменённый patch не сможет использовать старое разрешение.
+
+### Готовый patch
+
+Когда `finish` выполнил полный validation profile и status стал `ready`, ещё раз просмотрите sealed diff:
+
+```bash
+ionic-llm-harness status <repository-id> <run-id> --include-patch
+```
+
+Применить его к primary checkout:
+
+```bash
+ionic-llm-harness apply <repository-id> <run-id>
+```
+
+Перед применением harness проверяет чистоту checkout, исходный `HEAD`, успешную validation evidence и SHA-256 sealed patch. Harness не создаёт commit и не выполняет push: после `apply` разработчик делает обычный review, commit и push средствами целевого проекта.
+
+Ненужный run удаляется командой:
+
+```bash
+ionic-llm-harness discard <repository-id> <run-id>
+```
+
+## 6. Где появляются данные
+
+| Расположение                                             | Содержимое                                              | Попадает в target Git |
+| -------------------------------------------------------- | ------------------------------------------------------- | --------------------: |
+| Общая установка harness                                  | Policy, prompts, MCP server, profiles и `.env.local-ai` |                   нет |
+| `~/.agents/skills`                                       | Global skill packages                                   |                   нет |
+| `~/.local/share/ionic-llm-harness`                       | Registry, runs, approvals и detached worktrees          |                   нет |
+| Docker                                                   | Base runner и project dependency images                 |                   нет |
+| `.git/worktrees` целевого repository во время active run | Служебная регистрация внешнего Git worktree             |                   нет |
+| Primary checkout target                                  | Только явно применённый sealed patch                    |                    да |
+
+Harness не создаёт в target tree `ai/`, `scripts/`, `.agents/`, `opencode.json`, Dockerfile, logs или state files. Project-local agent instructions не получают автоматического доверия. Нужные общие правила добавляются в profile/prompt общей установки либо явно формулируются в задаче.
+
+## 7. Работа без `npm link`
+
+Все операции доступны непосредственно через установленный repository harness:
+
+```bash
+npm --prefix "$IONIC_HARNESS_HOME" run harness:doctor -- --repo "$TARGET_PROJECT"
+npm --prefix "$IONIC_HARNESS_HOME" run harness -- prepare "$TARGET_PROJECT"
+npm --prefix "$IONIC_HARNESS_HOME" run opencode -- --repo "$TARGET_PROJECT"
+```
+
+Human-only команды также можно выполнить так:
+
+```bash
+npm --prefix "$IONIC_HARNESS_HOME" run harness -- \
+  status <repository-id> <run-id> --include-patch
+```
+
+Этот вариант удобен для CI-like workstation setup или когда global npm links запрещены policy.
+
+## 8. Несколько проектов
+
+Одна установка может обслуживать несколько repositories:
+
+```bash
+ionic-llm-harness doctor --repo /projects/application-a
+ionic-llm-harness prepare /projects/application-a
+
+ionic-llm-harness doctor --repo /projects/application-b
+ionic-llm-harness prepare /projects/application-b
+```
+
+Repository ID включает нормализованное имя и hash canonical path. State, worktrees, approvals и dependency images разделены. После перемещения repository в другой каталог запустите `doctor` и `prepare` с новым path: он получит новый identity.
+
+## 9. Пример для `scom`
+
+```bash
+export TARGET_PROJECT=/Users/<user>/Projects/scloud/scom-mobile
+
+ionic-llm-harness doctor --repo "$TARGET_PROJECT"
+ionic-llm-harness prepare "$TARGET_PROJECT"
+ionic-llm-harness opencode \
+  --repo "$TARGET_PROJECT" \
+  run "Реализуй отдельную feature, добавь тесты и выполни full validation"
+```
+
+После `ready`:
+
+```bash
+ionic-llm-harness status <repository-id> <run-id> --include-patch
+ionic-llm-harness apply <repository-id> <run-id>
+git -C "$TARGET_PROJECT" diff --check
+git -C "$TARGET_PROJECT" status --short
+```
+
+## 10. Обновление общей установки
+
+Обновление выполняется один раз, а не в каждом target:
+
+```bash
+cd "$IONIC_HARNESS_HOME"
+git pull --ff-only
+npm ci
+npm link
+npx skills check
+npm run verify
+npm run agent:docker:build
+```
+
+Перед обновлением завершите или discard active runs. Если policy, runner или profile изменились, создавайте новые runs после повторного `doctor` и `prepare`; не переносите approval между версиями.
+
+## 11. Частые проблемы
+
+### `Target checkout contains uncommitted changes`
+
+Закончите текущую работу: commit или осознанный stash. Harness начинает run только от committed `HEAD` и не смешивает пользовательский diff с model patch.
+
+### `Skill ... is missing`
+
+Переустановите полный package по командам из [руководства по skills](required-skills.md). Одного `SKILL.md` недостаточно — нужны routed references.
+
+### `OpenCode is not installed`
+
+Установите OpenCode или укажите абсолютный executable через `OPENCODE_BIN` в окружении общей установки. После смены Node через `nvm` проверьте `npm link` повторно.
+
+### `LOCAL_AI_BASE_URL is missing` или модель недоступна
+
+Редактируйте только `$IONIC_HARNESS_HOME/.env.local-ai`, затем выполните `npm run ai:smoke` в общей установке. Проверяйте отдельно endpoint и MCP/Docker: это независимые соединения.
+
+### `Docker Executor` или project runner недоступен
+
+Запустите Docker daemon, затем:
+
+```bash
+cd "$IONIC_HARNESS_HOME"
+npm run agent:docker:build
+ionic-llm-harness prepare "$TARGET_PROJECT"
+```
+
+### `npm ci` не проходит в project runner
+
+Проверьте соответствие `package.json` и `package-lock.json` и совместимость dependencies с Linux/Node 26. Текущий build context намеренно содержит только package manifests, runner и Dockerfile: `.npmrc` и registry credentials в него не передаются. Поэтому private dependencies пока требуют отдельного доверенного механизма BuildKit secret в общей реализации harness; не копируйте credentials в target или Dockerfile. Network отключается уже во время выполнения coding checks.
+
+### Full validation не проходит
+
+Текущий профиль обязательно выполняет `npm run build` и `npm test -- --watch=false`. `format:check` и `cap:check` запускаются при наличии. Исправьте target scripts или создайте подходящий профиль в общей установке harness.
+
+### Run больше не нужен
+
+Используйте `ionic-llm-harness discard ...`. Не удаляйте external worktree вручную: команда согласованно очищает Git worktree registry и state run.
+
+---
+
+← [Обязательные skills](required-skills.md) · [Архитектура внешнего режима →](external-projects-and-opencode.md)

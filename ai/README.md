@@ -4,16 +4,16 @@ For the complete connected guide—including terminology, architecture diagrams,
 retrieval internals, the agent runtime, security, operations, and the tutorial
 for building a similar harness—start at [`docs/README.md`](../docs/README.md).
 
-This harness gives `gpt-oss-20b` task-specific access to the live `angular-developer` and `capacitor-plugins` packages under `~/.agents/skills`. It does not fine-tune model weights and does not copy skill content into the repository. Every request reloads the manifests and retrieves the most relevant references, so skill updates become available immediately.
+This harness gives `gpt-oss-20b` compact task-specific access to the live `angular-developer`, `capacitor-plugins`, `ionic-native-essentials`, and `ionic-deep-links` skills under `~/.agents/skills`. OpenCode can dynamically load additional relevant skills from the globally installed `erkamyaman/ionic-capacitor-skills` and `Cap-go/capgo-skills` packages. It does not fine-tune model weights and does not copy skill content into the repository. Every request reloads the allowlisted manifests and retrieves the most relevant references, so skill updates become available immediately.
 
 The application checked out beside this directory is only an optional example corpus. Its files are excluded from model context by default and never define model behavior.
 
 ## Request flow
 
-1. Read both external `SKILL.md` manifests.
+1. Read the four compact-retrieval `SKILL.md` manifests.
 2. Expand Russian task terms with the aliases in `ai/harness.json`.
 3. Rank reference Markdown files by path and content relevance.
-4. Inject compact excerpts from both manifests plus the selected reference chunks as trusted skill context.
+4. Inject compact excerpts from the allowlisted manifests plus the selected reference chunks as trusted skill context.
 5. Add application files only when `--with-project-reference` is explicitly passed; label them as untrusted examples.
 6. Send the request to the configured OpenAI-compatible Chat Completions endpoint.
 7. Return only `choices[0].message.content`; never expose or replay reasoning fields.

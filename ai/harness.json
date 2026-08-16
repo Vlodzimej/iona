@@ -9,6 +9,56 @@
     "minimumRecommendedContextWindow": 32768
   },
   "skillRoot": "~/.agents/skills",
+  "skillPackages": [
+    {
+      "source": "angular/skills",
+      "installCommand": "npx skills add angular/skills@angular-developer -g -y",
+      "requiredSkills": ["angular-developer"]
+    },
+    {
+      "source": "erkamyaman/ionic-capacitor-skills",
+      "installCommand": "npx skills add erkamyaman/ionic-capacitor-skills -g -y",
+      "requiredSkills": [
+        "ionic-analytics",
+        "ionic-angular",
+        "ionic-app-icon-splash",
+        "ionic-apple-sign-in",
+        "ionic-att",
+        "ionic-biometric-auth",
+        "ionic-cmp-consent",
+        "ionic-deep-links",
+        "ionic-firebase",
+        "ionic-in-app-review",
+        "ionic-local-notifications",
+        "ionic-native-essentials",
+        "ionic-sentry",
+        "ionic-shared",
+        "ionic-supabase"
+      ]
+    },
+    {
+      "source": "Cap-go/capgo-skills",
+      "installCommand": "npx skills add Cap-go/capgo-skills -g -y",
+      "requiredSkills": [
+        "capacitor-plugins",
+        "capacitor-app-store",
+        "capacitor-apple-review-preflight",
+        "capacitor-best-practices",
+        "capacitor-ci-cd",
+        "capacitor-testing",
+        "capacitor-security",
+        "capacitor-performance",
+        "capacitor-accessibility",
+        "capacitor-offline-first",
+        "capacitor-push-notifications",
+        "capgo-live-updates",
+        "debugging-capacitor",
+        "ionic-design",
+        "ios-android-logs",
+        "safe-area-handling"
+      ]
+    }
+  ],
   "skills": [
     {
       "name": "angular-developer",
@@ -104,12 +154,89 @@
         "передач": "references/capacitor-file-transfer.md"
       },
       "maxReferences": 3
+    },
+    {
+      "name": "ionic-native-essentials",
+      "description": "Focused official Capacitor integrations for common Ionic native capabilities",
+      "referenceTriggers": [
+        "camera",
+        "photo",
+        "file",
+        "filesystem",
+        "share",
+        "haptic",
+        "network",
+        "offline",
+        "keyboard",
+        "камера",
+        "фото",
+        "файл",
+        "поделиться",
+        "вибрац",
+        "сеть",
+        "офлайн",
+        "клавиатур"
+      ],
+      "referenceRoutes": {
+        "camera": "references/camera.md",
+        "photo": "references/camera.md",
+        "камера": "references/camera.md",
+        "фото": "references/camera.md",
+        "filesystem": "references/filesystem.md",
+        "file": "references/filesystem.md",
+        "файл": "references/filesystem.md",
+        "share": "references/share.md",
+        "поделиться": "references/share.md",
+        "haptic": "references/haptics.md",
+        "вибрац": "references/haptics.md",
+        "network": "references/network.md",
+        "offline": "references/network.md",
+        "сеть": "references/network.md",
+        "офлайн": "references/network.md",
+        "keyboard": "references/keyboard.md",
+        "клавиатур": "references/keyboard.md"
+      },
+      "maxReferences": 2
+    },
+    {
+      "name": "ionic-deep-links",
+      "description": "Ionic custom URL schemes, iOS Universal Links, Android App Links, and routing",
+      "referenceTriggers": [
+        "deep link",
+        "universal link",
+        "app link",
+        "url scheme",
+        "oauth callback",
+        "magic link",
+        "password reset",
+        "диплинк",
+        "глубокая ссыл",
+        "универсальная ссыл",
+        "схема url",
+        "oauth",
+        "magic link",
+        "сброс пароля"
+      ],
+      "referenceRoutes": {
+        "url scheme": "references/custom-scheme.md",
+        "oauth": "references/custom-scheme.md",
+        "magic link": "references/custom-scheme.md",
+        "схема url": "references/custom-scheme.md",
+        "ios": "references/ios-universal-links.md",
+        "universal link": "references/ios-universal-links.md",
+        "универсальная ссыл": "references/ios-universal-links.md",
+        "android": "references/android-app-links.md",
+        "app link": "references/android-app-links.md",
+        "routing": "references/routing.md",
+        "маршрут": "references/routing.md"
+      },
+      "maxReferences": 3
     }
   ],
   "retrieval": {
     "maxBytes": 7200,
     "minimumReferenceScore": 100,
-    "manifestExcerptCharacters": 900,
+    "manifestExcerptCharacters": 600,
     "referenceChunkCharacters": 1200,
     "maxReferenceBytes": 50000,
     "queryAliases": {

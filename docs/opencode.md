@@ -1,6 +1,6 @@
 # OpenCode, MCP harness и удалённая модель
 
-[Документация](README.md) · [Внешние проекты](harness/external-projects-and-opencode.md) · [Удалённая модель](../ai/remote-model.md) · [Безопасность](security.md)
+[Документация](README.md) · [Внешние проекты](harness/external-projects-and-opencode.md) · [Обязательные skills](harness/required-skills.md) · [Удалённая модель](../ai/remote-model.md) · [Безопасность](security.md)
 
 OpenCode используется как единственный reasoning agent. Он обращается к `gpt-oss-20b` через OpenAI-compatible endpoint, загружает global skills и работает с целевым Git-репозиторием только через локальный MCP server harness.
 
@@ -52,10 +52,13 @@ npm run opencode
 Для другого проекта без переноса harness-файлов:
 
 ```bash
-npm run opencode -- --repo /absolute/path/to/project
+ionic-llm-harness doctor --repo /absolute/path/to/project
+ionic-llm-harness opencode --repo /absolute/path/to/project
 ```
 
-Launcher загружает `.env.local-ai`, регистрирует целевой Git root, создаёт нейтральный OpenCode workspace во внешнем state root и передаёт обязательную inline-конфигурацию. Project-local `opencode.json` целевого репозитория не может вернуть прямые файловые полномочия, потому что OpenCode вообще не запускается из этого project tree, а enforced config загружается с более высоким приоритетом.
+User-scope команду один раз создаёт `npm link` в каталоге общей установки harness. Если link не нужен, используйте прежнюю форму `npm --prefix /path/to/harness run opencode -- --repo /path/to/project`.
+
+Launcher загружает `.env.local-ai` из общей установки, регистрирует целевой Git root, создаёт нейтральный OpenCode workspace во внешнем state root и передаёт обязательную inline-конфигурацию. Project-local `opencode.json` целевого репозитория не может вернуть прямые файловые полномочия, потому что OpenCode вообще не запускается из этого project tree, а enforced config загружается с более высоким приоритетом.
 
 ## Разрешения
 
@@ -78,7 +81,7 @@ Enforced policy использует deny-by-default:
 
 ## Skills
 
-OpenCode автоматически обнаруживает совместимые global skills в `~/.agents/skills`. Агент загружает `angular-developer` и `capacitor-plugins` по необходимости; копировать их в проект не нужно.
+OpenCode автоматически обнаруживает совместимые global skills в `~/.agents/skills`. Обязательны `angular/skills`, `erkamyaman/ionic-capacitor-skills` и `Cap-go/capgo-skills`; команды установки, compact retrieval allowlist и lifecycle routing приведены в [руководстве](harness/required-skills.md) и [матрице покрытия](harness/skill-coverage.md). Копировать их в проект не нужно.
 
 ## Диагностика
 
@@ -114,11 +117,11 @@ npm run harness:test
 
 ### Checks не запускаются
 
-Соберите base runner командой `npm run agent:docker:build`, запустите Docker daemon и проверьте наличие `package-lock.json`. Для диагностики project-specific image выполните `npm run harness -- prepare /path/to/project`. Сеть используется только во время контролируемой сборки dependency image; исполняемые checks сети не получают.
+Соберите base runner командой `npm run agent:docker:build` в общей установке harness, запустите Docker daemon и проверьте наличие `package-lock.json`. Для диагностики project-specific image выполните `ionic-llm-harness prepare /path/to/project`. Сеть используется только во время контролируемой сборки dependency image; исполняемые checks сети не получают.
 
 ### Protected patch остановился
 
-Это ожидаемое состояние. Используйте repository ID и approval ID из результата для локальной команды `npm run harness -- approve ...`, затем попросите OpenCode повторить идентичный patch.
+Это ожидаемое состояние. Используйте repository ID и approval ID из результата для локальной команды `ionic-llm-harness approve <repository-id> <approval-id>`, затем попросите OpenCode повторить идентичный patch.
 
 ---
 

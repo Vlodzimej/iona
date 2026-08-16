@@ -15,7 +15,14 @@
     "readOnly": { "type": "boolean" },
     "expectedSkills": {
       "type": "array",
-      "items": { "enum": ["angular-developer", "capacitor-plugins"] },
+      "items": {
+        "enum": [
+          "angular-developer",
+          "capacitor-plugins",
+          "ionic-native-essentials",
+          "ionic-deep-links"
+        ]
+      },
       "minItems": 1,
       "uniqueItems": true
     },

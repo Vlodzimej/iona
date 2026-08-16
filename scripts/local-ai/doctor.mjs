@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { requiredGlobalSkillPackages, requiredSkillPackages } from '../harness/lib/preflight.mjs';
 import { buildContext } from './lib/context.mjs';
 import { loadLocalAiEnv, projectRoot, runtimeSkillRoot } from './lib/env.mjs';
 
@@ -75,7 +76,25 @@ for (const requiredPath of [
   }
 }
 
-for (const skillName of ['angular-developer', 'capacitor-plugins']) {
+for (const skillPackage of requiredGlobalSkillPackages(projectRoot)) {
+  const missing = skillPackage.requiredSkills.filter(
+    (skillName) => !existsSync(resolve(skillRoot, skillName, 'SKILL.md')),
+  );
+  const present = missing.length === 0;
+  status(
+    present ? 'ok' : 'error',
+    'Global skills ' + skillPackage.source,
+    present
+      ? skillPackage.requiredSkills.length + ' required manifests present'
+      : 'missing: ' + missing.join(', ') + '; install with: ' + skillPackage.installCommand,
+  );
+  if (!present) {
+    errors += 1;
+  }
+}
+
+for (const skill of requiredSkillPackages(projectRoot)) {
+  const skillName = skill.name;
   const manifest = resolve(skillRoot, skillName, 'SKILL.md');
   const present = existsSync(manifest);
   status(present ? 'ok' : 'error', 'Skill ' + skillName, present ? manifest : 'missing');
@@ -116,6 +135,45 @@ try {
     capacitorSources.join(', ') || 'no references selected',
   );
   if (!capacitorRouted) {
+    errors += 1;
+  }
+
+  const ionicNativeContext = buildContext({
+    query: 'Ionic native share haptic feedback',
+    maximumSkillBytes: 7200,
+  });
+  const ionicNativeSources = selectedSources(ionicNativeContext);
+  const ionicNativeRouted = ['share.md', 'haptics.md'].every((name) =>
+    ionicNativeSources.some(
+      (source) =>
+        source.includes('/ionic-native-essentials/references/') && source.endsWith('/' + name),
+    ),
+  );
+  status(
+    ionicNativeRouted ? 'ok' : 'error',
+    'Ionic native routing',
+    ionicNativeSources.join(', ') || 'no references selected',
+  );
+  if (!ionicNativeRouted) {
+    errors += 1;
+  }
+
+  const deepLinkContext = buildContext({
+    query: 'Ionic iOS Universal Link Android App Link routing',
+    maximumSkillBytes: 7200,
+  });
+  const deepLinkSources = selectedSources(deepLinkContext);
+  const deepLinkRouted = ['ios-universal-links.md', 'android-app-links.md'].every((name) =>
+    deepLinkSources.some(
+      (source) => source.includes('/ionic-deep-links/references/') && source.endsWith('/' + name),
+    ),
+  );
+  status(
+    deepLinkRouted ? 'ok' : 'error',
+    'Ionic deep-link routing',
+    deepLinkSources.join(', ') || 'no references selected',
+  );
+  if (!deepLinkRouted) {
     errors += 1;
   }
 } catch (error) {
