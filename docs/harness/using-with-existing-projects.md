@@ -165,6 +165,26 @@ Launcher:
 
 OpenCode автоматически создаёт run через `ionic_harness_begin`, читает target через bounded tools, отправляет validated unified diffs и выполняет allowlisted checks в Docker.
 
+### Опциональный Visual QA
+
+Visual tools не включены в обычную session. Для измерения DOM и сверки с PNG-макетом сначала установите Chromium общей harness, запустите target web-приложение на loopback и зарегистрируйте exact target:
+
+```bash
+cd "$HARNESS_HOME"
+npx playwright install chromium
+ionic-llm-harness visual-target "$TARGET_PROJECT" http://127.0.0.1:4200 --name local-app
+ionic-llm-harness visual-baseline "$TARGET_PROJECT" /path/to/design.png --name home
+ionic-llm-harness visual-list "$TARGET_PROJECT"
+```
+
+После этого запустите отдельную opt-in session:
+
+```bash
+ionic-llm-harness opencode --repo "$TARGET_PROJECT" --visual
+```
+
+Флаг добавляет отдельный `ionic_visual_*` MCP namespace. Browser observations, screenshots и HTML reports сохраняются во внешнем state root и не изменяют target tree или lifecycle coding run. Полный workflow, ограничения и eval-команда описаны в [руководстве по Visual QA](visual-debugging.md).
+
 ## 5. Review, approval и применение результата
 
 OpenCode сообщает `repositoryId`, `runId`, status и validation result. Сохраните эти идентификаторы до завершения работы.

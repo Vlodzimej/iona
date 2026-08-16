@@ -17,6 +17,9 @@ test('user-scoped harness CLI exposes the external-project workflow', () => {
   assert.equal(result.status, 0);
   assert.match(result.stdout, /doctor --repo PATH/u);
   assert.match(result.stdout, /opencode --repo PATH/u);
+  assert.match(result.stdout, /visual-target PATH URL/u);
+  assert.match(result.stdout, /visual-baseline PATH PNG/u);
+  assert.match(result.stdout, /visual-status PATH RUN/u);
   assert.match(result.stdout, /apply REPOSITORY RUN/u);
   assert.match(result.stdout, /remain outside the target repository/u);
 });

@@ -4,34 +4,71 @@
 
 ## Текущий статус
 
-В текущей реализации visual debugging **не поддерживается**.
+Реализован первый **web-only Visual QA milestone**:
 
-Доступные `ionic_harness_*` MCP tools умеют читать ограниченный текст, искать, применять unified diff и запускать allowlisted checks. Они не умеют:
+- отдельный opt-in MCP server `ionic_visual`, не расширяющий полномочия обычного `ionic_harness`;
+- подключение только к human-registered HTTP loopback URL;
+- фиксированные профили `desktop`, `iphone-15` и `pixel-8`;
+- bounded DOM snapshot без текста страницы и значений inputs;
+- измерение touch targets, accessible names, overflow, clipping и overlap;
+- viewport screenshot;
+- сравнение с immutable PNG baseline, pixel diff и mismatch threshold;
+- standalone HTML report во внешнем state root.
 
-- подключаться к DOM/WebView запущенного приложения;
-- получать bounding boxes, computed styles или accessibility tree;
-- управлять Xcode Simulator, Android Emulator или физическим устройством;
-- делать screenshots;
-- читать binary image files из target;
-- сравнивать screenshot с PNG/JPEG-макетом;
-- отправлять изображения модели через текущий text-only request protocol.
+Android WebView, ADB, iOS Simulator, WKWebView и physical devices пока не поддерживаются. Текущий `gpt-oss-20b` получает только структурированные наблюдения и не анализирует raw images.
 
-Skills `debugging-capacitor`, `ios-android-logs`, `ionic-design` и `capacitor-testing` дают инструкции и методику, но не добавляют инструментальных полномочий. Browser control, доступный Codex desktop, также не является частью OpenCode/local-model harness.
+Обычный запуск OpenCode не загружает Playwright и не разрешает `ionic_visual_*`. Visual tools появляются только после явного `--visual`.
 
-## Что можно добавить
+## Подготовка и запуск
 
-Visual QA следует реализовать как отдельный controlled tool layer, а не как разрешение произвольного browser/ADB/shell access.
+После установки зависимостей общей harness один раз установите управляемый Chromium:
 
-Предлагаемый MCP surface:
+```bash
+npx playwright install chromium
+```
 
-| Tool                  | Назначение                                             | Ограничение                                                             |
-| --------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------- |
-| `visual_open`         | Открыть зарегистрированный loopback URL или app target | Только human-registered target, без произвольной сети                   |
-| `visual_dom_snapshot` | Получить DOM, accessibility tree и computed layout     | Bounded nodes/properties; redaction inputs, tokens и private text       |
-| `visual_screenshot`   | Сделать screenshot viewport/device                     | Фиксированные device profiles и внешний artifact directory              |
-| `visual_measure`      | Измерить размеры, gaps, overflow и touch targets       | Детерминированные правила и числовой результат                          |
-| `visual_compare`      | Сравнить screenshot с зарегистрированным макетом       | Exact asset ID, scale/alignment policy, thresholds и bounded image size |
-| `visual_report`       | Создать standalone HTML report                         | Без credentials, hidden reasoning, endpoint URL и непроверенного HTML   |
+Запустите web-приложение самостоятельно на loopback interface, затем зарегистрируйте точный URL. URL, credentials и произвольная сеть модели не передаются:
+
+```bash
+ionic-llm-harness visual-target /path/to/project http://127.0.0.1:4200 --name local-app
+```
+
+Для сверки зарегистрируйте PNG-макет. Harness декодирует и заново записывает PNG, удаляя необязательную metadata, затем хранит immutable copy вне проекта:
+
+```bash
+ionic-llm-harness visual-baseline /path/to/project /path/to/design.png --name home
+ionic-llm-harness visual-list /path/to/project
+```
+
+Включите Visual QA только для нужной OpenCode-сессии:
+
+```bash
+ionic-llm-harness opencode --repo /path/to/project --visual run \
+  "Проверь размеры интерактивных элементов и сравни экран home с зарегистрированным макетом"
+```
+
+После создания report получите human-visible absolute artifact directory:
+
+```bash
+ionic-llm-harness visual-status /path/to/project VISUAL_RUN_ID
+```
+
+Файл `report.html` внутри выведенного `artifactRoot` можно открыть локально в браузере.
+
+## Инструментальный слой
+
+Visual QA реализован как отдельный controlled tool layer, а не как разрешение произвольного browser/ADB/shell access.
+
+Текущий MCP surface:
+
+| Tool                        | Назначение                                          | Ограничение                                                         |
+| --------------------------- | --------------------------------------------------- | ------------------------------------------------------------------- |
+| `ionic_visual_begin`        | Открыть зарегистрированный loopback target          | Только opaque target ID и fixed device profile                      |
+| `ionic_visual_dom_snapshot` | Получить bounded DOM и computed layout              | Не возвращает DOM text, input values или произвольные attributes    |
+| `ionic_visual_screenshot`   | Сделать screenshot viewport                         | PNG во внешнем artifact directory                                   |
+| `ionic_visual_measure`      | Найти overflow, clipping, overlap и a11y отклонения | Детерминированные правила и числовой результат                      |
+| `ionic_visual_compare`      | Сравнить screenshot с зарегистрированным макетом    | Exact baseline ID, dimensions, thresholds и максимум 16 megapixels  |
+| `ionic_visual_report`       | Создать standalone HTML report                      | CSP, HTML escaping, без endpoint URL, credentials и model reasoning |
 
 Модель получает только структурированные observations: selectors, rectangles, CSS properties, rule violations и безопасные ссылки на artifacts. Browser/device process остаётся под контролем harness.
 
@@ -39,15 +76,35 @@ Visual QA следует реализовать как отдельный contro
 
 Для web build или `ionic serve` возможен наиболее полный анализ:
 
-1. Harness запускает заранее определённый build/serve profile на loopback.
-2. Playwright/CDP открывает зарегистрированный URL с фиксированным viewport и device scale factor.
-3. Controller собирает DOM, computed styles, bounding rectangles и accessibility snapshot.
-4. Детерминированные проверки выявляют overflow, overlap, clipping, неожиданный scroll, слишком маленькие touch targets и расхождение spacing.
+1. Человек запускает приложение на loopback либо использует отдельно контролируемый serve profile.
+2. Playwright открывает зарегистрированный URL с фиксированным viewport и device scale factor.
+3. Controller собирает DOM geometry, ограниченный набор computed styles и accessibility facts.
+4. Детерминированные проверки выявляют horizontal overflow, overlap, clipping, слишком маленькие touch targets и отсутствие accessible name.
 5. Screenshot и measurement JSON сохраняются вне target repository.
 
-Такой режим может точно сообщить, например, что фактическая кнопка имеет `42×40 px` вместо ожидаемых `48×48 px`, либо что gap отличается от макета на `6 px`.
+Такой режим может точно сообщить, например, что фактическая кнопка имеет `42×40 px` при настроенном минимуме `44×44 px`. Expected rectangles, spacing tokens и region-level comparison относятся к следующему этапу.
 
-## Android
+## Проверка эффективности DOM-анализа
+
+Быстрые pure/contract tests входят в обычный `npm run harness:test`. Они не требуют установленного browser binary и проверяют отсутствие регрессии базовой harness.
+
+Реальный browser eval запускается отдельно:
+
+```bash
+npm run harness:visual:test
+```
+
+Fixture содержит более 320 элементов и шесть ожидаемых нарушений: малые touch targets в light DOM и open Shadow DOM, отсутствие accessible name, скрытый horizontal overflow, clipping и overlap. Тест выводит:
+
+- количество проанализированных DOM nodes;
+- продолжительность snapshot + analysis;
+- true/false positives и false negatives;
+- precision, recall и F1;
+- mismatch percentage для изменённого screenshot.
+
+Release gate требует recall `1`, precision не ниже `0.9`, F1 не ниже `0.94` и measurement latency не более `2 s`. Отдельные негативные тесты защищают от false positives на нормальном vertical document scroll и intentional scroll containers.
+
+## Android — следующий этап
 
 Для Android нужны два независимых канала:
 
@@ -56,7 +113,7 @@ Visual QA следует реализовать как отдельный contro
 
 Нельзя отдавать модели полный `adb` или список всех подключённых устройств. Human-facing controller выбирает application ID и serial, а MCP получает только opaque target ID. Установка APK, выдача permissions и изменение device state должны оставаться protected actions.
 
-## iOS
+## iOS — следующий этап
 
 Для iOS Simulator можно безопасно начать со screenshots через `simctl`. Получение DOM WKWebView требует отдельного adapter к Web Inspector/Safari tooling и не должно подменяться произвольным управлением Xcode.
 
@@ -64,44 +121,44 @@ Visual QA следует реализовать как отдельный contro
 
 ## Сверка с изображением макета
 
-Макет должен сначала регистрироваться человеком как внешний immutable artifact. Не следует разрешать модели выбирать произвольный файл из filesystem.
+Макет сначала регистрируется человеком как внешний immutable artifact. Модель не может выбирать произвольный файл из filesystem. Текущий milestone принимает PNG; JPEG normalization остаётся следующим расширением.
 
-Детерминированный pipeline:
+Текущий детерминированный pipeline:
 
 1. Проверить MIME, dimensions, размер и отсутствие metadata, которое не нужно для сравнения.
-2. Нормализовать viewport, device scale factor, color profile и safe area.
-3. Выровнять screenshot и baseline по явно заданной стратегии; не растягивать молча.
-4. Рассчитать pixel diff и perceptual metric, сформировать heatmap/overlay.
-5. Отдельно сравнить DOM measurements с ожидаемыми regions/tokens, если они заданы.
-6. Вывести threshold, ignored masks, mismatch percentage и список самых больших отклонений.
+2. Нормализовать PNG baseline и использовать фиксированные viewport/device scale factor.
+3. Требовать точного совпадения dimensions; не растягивать и не выравнивать изображение молча.
+4. Рассчитать pixel diff и difference image.
+5. Вывести pixel threshold, maximum mismatch percentage и фактический mismatch percentage.
+
+Perceptual metric, masks, safe-area alignment и expected regions/tokens остаются дальнейшими расширениями.
 
 Vision-capable model можно добавить как вторичный semantic reviewer, но не как единственный gate. Текущий `gpt-oss-20b` harness получает текстовый prompt и не анализирует raw images. Даже при multimodal provider итоговый pass/fail должен опираться на воспроизводимые measurements и thresholds.
 
-## Предлагаемый HTML-отчёт
+## HTML-отчёт
 
-Standalone report должен содержать:
+Текущий standalone report содержит:
 
-- target/profile/viewport без сетевых endpoint details;
-- baseline, actual screenshot, overlay и heatmap;
+- target ID, fixed device profile и viewport без сетевых endpoint details;
+- baseline, actual screenshot и difference image;
 - mismatch percentage и выбранные thresholds;
-- таблицу DOM элементов: selector, expected/actual rectangle, delta;
-- overflow, overlap, accessibility и touch-target violations;
-- platform/browser/device metadata, необходимую для воспроизведения;
-- ссылки на run ID и validation evidence.
+- таблицу overflow, clipping, overlap, accessibility и touch-target violations;
+- visual run ID и количество проанализированных DOM nodes.
 
-Artifacts следует хранить под внешним state root, например `~/.local/share/ionic-llm-harness/repositories/<id>/visual-runs/<run-id>`, а не в target repository. Публикация отчёта должна быть отдельным человеческим действием, потому что screenshots могут содержать пользовательские данные.
+Artifacts хранятся под внешним state root, например `~/.local/share/ionic-llm-harness/repositories/<id>/visual/runs/<run-id>`, а не в target repository. Публикация отчёта должна быть отдельным человеческим действием, потому что screenshots могут содержать пользовательские данные.
 
-## Этапы реализации
+## Дальнейшие этапы реализации
 
-1. Web-only Playwright/CDP adapter и fixed device profiles.
-2. DOM measurements, accessibility rules и screenshot artifacts.
-3. Baseline asset registry, pixel/perceptual diff и HTML report.
-4. Android Emulator screenshot + WebView CDP adapter.
-5. iOS Simulator screenshots.
-6. WKWebView DOM adapter после отдельного security review.
-7. Опциональный multimodal reviewer и eval dataset с намеренно внесёнными layout defects.
+1. ~~Web-only Playwright adapter и fixed device profiles.~~
+2. ~~DOM measurements, accessibility rules и screenshot artifacts.~~
+3. ~~PNG baseline registry, pixel diff и HTML report.~~
+4. Добавить optional perceptual metric, masks и явно заданные expected regions/tokens.
+5. Android Emulator screenshot + WebView CDP adapter.
+6. iOS Simulator screenshots.
+7. WKWebView DOM adapter после отдельного security review.
+8. Опциональный multimodal reviewer и расширенный eval dataset.
 
-До реализации этих этапов harness может исправлять SCSS по коду и текстовым observations человека, но не может самостоятельно доказать визуальное соответствие запущенного приложения макету.
+Текущий web milestone уже даёт воспроизводимое числовое evidence. Он не доказывает semantic equivalence дизайну и не заменяет human review, особенно для typography, иллюстраций и platform-native rendering.
 
 ---
 

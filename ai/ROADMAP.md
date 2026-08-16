@@ -38,12 +38,14 @@
 
 Критерий завершения: контрольные задачи заканчиваются без усечения и без внутренних служебных маркеров, а задержка укладывается в согласованный предел.
 
-## Visual QA — запланированное расширение
+## Visual QA — web milestone реализован
 
-- Добавить controlled web adapter для DOM, computed layout, accessibility tree и screenshots.
-- Реализовать immutable baseline registry, deterministic image diff и standalone HTML report.
+- Реализованы отдельный opt-in MCP, controlled Playwright adapter, DOM geometry, accessibility observations и screenshots.
+- Реализованы immutable PNG baseline registry, deterministic pixel diff и standalone HTML report.
+- Добавлен browser eval с precision/recall/F1, latency и воспроизводимыми layout defects.
+- Следующий web-этап: masks, perceptual metric и expected regions/design tokens.
 - Отдельно спроектировать Android WebView/CDP и iOS WKWebView adapters без выдачи модели произвольного ADB/Xcode/Safari control.
-- Создать visual eval dataset с воспроизводимыми layout defects до включения multimodal reviewer.
+- Расширить visual eval dataset перед включением multimodal reviewer.
 
 ## Этап 2 — Качество выбора знаний
 

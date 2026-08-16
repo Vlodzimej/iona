@@ -5,6 +5,7 @@ export function parseHarnessLauncherArguments(args, defaultRepository) {
   let repositoryPath = defaultRepository;
   let profile = 'angular-ionic-capacitor';
   let stateRoot;
+  let visual = false;
   for (let index = 0; index < args.length; index += 1) {
     const argument = args[index];
     if (['--repo', '--profile', '--state-root'].includes(argument)) {
@@ -16,11 +17,13 @@ export function parseHarnessLauncherArguments(args, defaultRepository) {
       if (argument === '--profile') profile = value;
       if (argument === '--state-root') stateRoot = value;
       index += 1;
+    } else if (argument === '--visual') {
+      visual = true;
     } else {
       forwarded.push(argument);
     }
   }
-  return { forwarded, repositoryPath, profile, stateRoot };
+  return { forwarded, repositoryPath, profile, stateRoot, visual };
 }
 
 export function createEnforcedOpenCodeConfig({
@@ -29,8 +32,9 @@ export function createEnforcedOpenCodeConfig({
   repositoryId,
   profile,
   stateRoot,
+  visual = false,
 }) {
-  return {
+  const config = {
     $schema: 'https://opencode.ai/config.json',
     model: 'lmstudio/gpt-oss-20b',
     small_model: 'lmstudio/gpt-oss-20b',
@@ -75,4 +79,19 @@ export function createEnforcedOpenCodeConfig({
     },
     watcher: { ignore: ['**'] },
   };
+  if (visual) {
+    config.instructions.push(resolve(harnessRoot, 'ai/prompts/opencode-visual.md'));
+    config.permission['ionic_visual_*'] = 'allow';
+    config.mcp.ionic_visual = {
+      type: 'local',
+      command: [nodeExecutable, resolve(harnessRoot, 'scripts/harness/visual-mcp.mjs')],
+      enabled: true,
+      timeout: 20_000,
+      environment: {
+        IONIC_HARNESS_REPOSITORY_ID: repositoryId,
+        IONIC_HARNESS_STATE_ROOT: stateRoot,
+      },
+    };
+  }
+  return config;
 }

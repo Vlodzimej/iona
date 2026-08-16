@@ -15,6 +15,7 @@ test('OpenCode harness launcher separates its flags from OpenCode arguments', ()
       repositoryPath: '/target',
       profile: 'strict',
       stateRoot: undefined,
+      visual: false,
       forwarded: ['run', 'Inspect the app'],
     },
   );
@@ -39,4 +40,32 @@ test('enforced OpenCode config denies built-ins and exposes only harness MCP too
     'project-123456789abc',
   );
   assert.deepEqual(config.instructions, ['/harness/ai/prompts/opencode-harness.md']);
+  assert.equal(config.permission['ionic_visual_*'], undefined);
+  assert.equal(config.mcp.ionic_visual, undefined);
+});
+
+test('visual tools require an explicit launcher flag and use a separate MCP namespace', () => {
+  const parsed = parseHarnessLauncherArguments(
+    ['--repo', '/target', '--visual', 'run', 'Inspect layout'],
+    '/default',
+  );
+  assert.equal(parsed.visual, true);
+  assert.deepEqual(parsed.forwarded, ['run', 'Inspect layout']);
+  const config = createEnforcedOpenCodeConfig({
+    harnessRoot: '/harness',
+    nodeExecutable: '/node',
+    repositoryId: 'project-123456789abc',
+    profile: 'angular-ionic-capacitor',
+    stateRoot: '/state',
+    visual: true,
+  });
+  assert.equal(config.permission['ionic_visual_*'], 'allow');
+  assert.deepEqual(config.mcp.ionic_visual.command, [
+    '/node',
+    '/harness/scripts/harness/visual-mcp.mjs',
+  ]);
+  assert.deepEqual(config.instructions, [
+    '/harness/ai/prompts/opencode-harness.md',
+    '/harness/ai/prompts/opencode-visual.md',
+  ]);
 });

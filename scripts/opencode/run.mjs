@@ -47,6 +47,7 @@ const enforcedConfig = createEnforcedOpenCodeConfig({
   repositoryId: repository.id,
   profile: parsed.profile,
   stateRoot,
+  visual: parsed.visual,
 });
 const result = spawnSync(executable, parsed.forwarded, {
   cwd: controllerRoot,

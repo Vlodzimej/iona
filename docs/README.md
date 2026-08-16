@@ -40,7 +40,7 @@ flowchart LR
   - [Внешние проекты и OpenCode](harness/external-projects-and-opencode.md) — один установленный harness, MCP-инструменты, внешние worktree и human-only применение патча.
   - [Обязательные skills](harness/required-skills.md) — user-scope packages, команды установки и trust allowlist.
   - [Покрытие skills](harness/skill-coverage.md) — SCSS, native debugging, testing, security, delivery и остальные этапы lifecycle.
-  - [Visual debugging](harness/visual-debugging.md) — текущие ограничения и спецификация DOM/screenshot/image-diff расширения.
+  - [Visual debugging](harness/visual-debugging.md) — opt-in web DOM measurements, screenshots, image diff, HTML-отчёт и план native adapters.
   - [Извлечение контекста](harness/context-retrieval.md) — skills, маршрутизация, chunking, ranking и бюджеты.
   - [Протокол модели](harness/model-protocol.md) — OpenAI-compatible API, сообщения, tool calls и обработка ответов.
   - [Оценка качества](harness/evaluations.md) — eval-задачи, метрики и регрессионный цикл.

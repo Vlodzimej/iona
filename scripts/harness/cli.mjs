@@ -21,6 +21,10 @@ Commands:
   doctor --repo PATH             Check the shared harness and target project
   prepare PATH                   Build/cache the target dependency runner
   opencode --repo PATH [ARGS]    Start OpenCode through the enforced harness
+  visual-target PATH URL         Register an exact HTTP loopback target
+  visual-baseline PATH PNG       Register an immutable PNG design baseline
+  visual-list PATH               List registered visual target and baseline IDs
+  visual-status PATH RUN         Show a visual run and its external artifact directory
   register PATH                  Register a target repository
   status REPOSITORY RUN          Show run status
   approve REPOSITORY APPROVAL    Approve an exact protected patch
@@ -42,6 +46,18 @@ if (command === 'doctor') {
   script = 'scripts/harness/doctor.mjs';
 } else if (command === 'opencode') {
   script = 'scripts/opencode/run.mjs';
+} else if (command === 'visual-target') {
+  script = 'scripts/harness/visual-control.mjs';
+  forwarded = ['target', ...args];
+} else if (command === 'visual-baseline') {
+  script = 'scripts/harness/visual-control.mjs';
+  forwarded = ['baseline', ...args];
+} else if (command === 'visual-list') {
+  script = 'scripts/harness/visual-control.mjs';
+  forwarded = ['list', ...args];
+} else if (command === 'visual-status') {
+  script = 'scripts/harness/visual-control.mjs';
+  forwarded = ['status', ...args];
 } else if (controlCommands.has(command)) {
   script = 'scripts/harness/control.mjs';
   forwarded = [command, ...args];
