@@ -6,7 +6,62 @@
 
 Изменение prompt, alias или context budget часто улучшает один пример и незаметно ухудшает другой. Evaluation suite превращает субъективное «кажется, отвечает лучше» в повторяемое сравнение.
 
-Eval — это зафиксированная задача с ожидаемыми источниками, обязательными фактами и запрещёнными ошибками. Текущий репозиторий содержит начальный schema и две smoke-задачи; roadmap предусматривает расширение до полноценного benchmark.
+Eval — это зафиксированная задача с ожидаемыми источниками, обязательными фактами и запрещёнными ошибками. В репозитории есть исполняемый начальный набор из десяти Angular/Capacitor scenarios, включая practical cases на accessibility, минимальные permissions и запрет неподтверждённых plugin APIs. Его следует расширять до полноценного coding benchmark по мере появления реальных ошибок.
+
+## Запуск
+
+Проверка schema и retrieval не обращается к модели:
+
+```bash
+npm run ai:test
+```
+
+Полный прогон обращается к настроенному OpenAI-compatible endpoint и создаёт автономную web-страницу в ignored-каталоге `ai/reports`:
+
+```bash
+npm run ai:eval
+npm run ai:eval -- --repeat 3
+npm run ai:eval -- --task angular-signal-forms
+npm run ai:eval -- --provider codex --output ai/reports/codex.html
+```
+
+Путь можно задать только внутри `ai/reports` и только с расширением `.html`:
+
+```bash
+npm run ai:eval -- --output ai/reports/baseline.html
+```
+
+Локальный provider по умолчанию допускает один bounded repair после failed deterministic check. Его можно отключить или ограничить двумя повторами:
+
+```bash
+npm run ai:eval -- --repair-attempts 0
+npm run ai:eval -- --repair-attempts 2
+```
+
+Attempts и полная latency учитываются в метриках. Codex provider всегда измеряется one-shot и требует установленный/authenticated Codex CLI.
+
+Команда возвращает ненулевой exit code, если хотя бы один run не прошёл, но сначала всегда записывает HTML и безопасный JSON sidecar. HTML не требует web-сервера и открывается локально в браузере.
+
+Отчёт содержит model ID, commit, sampling metadata, latency, attempts, длину ответа, выбранные references, результаты каждой проверки и раскрываемый видимый ответ модели. В него намеренно не попадают endpoint, API key, environment, task prompt, system prompt, hidden reasoning и файлы проекта.
+
+Если менялась только логика checks, старые ответы можно пересчитать без нового inference. Это допустимо только при неизменных task prompts:
+
+```bash
+npm run ai:rescore -- \
+  --input ai/reports/local.json \
+  --output ai/reports/local-rescored.html
+```
+
+Сравнение одинаковых local/Codex JSON datasets создаёт отдельную web-страницу:
+
+```bash
+npm run ai:compare -- \
+  --local ai/reports/local.json \
+  --codex ai/reports/codex.json \
+  --output ai/reports/model-comparison.html
+```
+
+Сравнение показывает pass rate, required-fact correctness, safety, cited-source grounding, attempts, среднюю длину и latency. Weighted quality использует веса 60/25/15; optimality штрафует ответы длиннее 450 слов. Per-task pass остаётся главным gate: высокий средний score не маскирует отдельный невалидный результат.
 
 ## Что измерять
 
@@ -60,7 +115,7 @@ flowchart LR
 5. Описать forbidden claims: несуществующие API, выдуманные версии, опасные разрешения.
 6. Заморозить формулировку prompt до сравнения вариантов.
 7. Выполнить не менее трёх повторов, потому что генерация вероятностна.
-8. Сохранить агрегированные метрики без секретных prompt bodies.
+8. Сохранить агрегированные метрики без task prompt bodies и секретов.
 9. Провести human review задач, где автоматическая оценка неоднозначна.
 
 ## Минимальная матрица
@@ -98,7 +153,7 @@ flowchart LR
 - общий pass rate не ниже 90% по трём deterministic runs;
 - `finish_reason=stop` и отсутствие raw channel markers.
 
-Это целевые ворота развития, а не заявление, что расширенная suite уже реализована. Текущее состояние — два smoke tasks и unit/integration tests agent runtime.
+Это целевые ворота развития, а не заявление, что начальный набор уже обеспечивает достаточное покрытие. Текущее состояние — десять functional/practical regression tasks, offline retrieval tests, bounded repair, local/Codex runners и сравнительный HTML-отчёт. Изолированные patch/build tasks и agent scenarios ещё нужно расширять.
 
 ## Правило выпуска
 

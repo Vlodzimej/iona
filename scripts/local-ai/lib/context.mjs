@@ -1,8 +1,7 @@
 import { existsSync, lstatSync, readFileSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { homedir } from 'node:os';
 import { extname, relative, resolve, sep } from 'node:path';
-import { projectRoot } from './env.mjs';
+import { projectRoot, runtimeSkillRoot, skillSourceRoot } from './env.mjs';
 
 const harnessConfigPath = resolve(projectRoot, 'ai/harness.json');
 const broadTerms = new Set([
@@ -36,18 +35,6 @@ const broadTerms = new Set([
 
 function readHarnessConfig() {
   return JSON.parse(readFileSync(harnessConfigPath, 'utf8'));
-}
-
-function expandHome(filePath) {
-  if (filePath === '~') {
-    return homedir();
-  }
-
-  if (filePath.startsWith('~/')) {
-    return resolve(homedir(), filePath.slice(2));
-  }
-
-  return resolve(projectRoot, filePath);
 }
 
 function inside(parent, child) {
@@ -318,7 +305,10 @@ function buildProjectReference(query, tokens, config, options) {
 
 export function buildContext(options) {
   const config = readHarnessConfig();
-  const skillRoot = expandHome(process.env.LOCAL_AI_SKILL_ROOT?.trim() || config.skillRoot);
+  if (config.skillRoot !== skillSourceRoot) {
+    throw new Error('ai/harness.json skillRoot must remain ' + skillSourceRoot + '.');
+  }
+  const skillRoot = runtimeSkillRoot();
   const maximumBytes = options.maximumSkillBytes ?? config.retrieval.maxBytes;
   const tokens = queryTokens(options.query, config.retrieval.queryAliases);
   const skills = [];
@@ -356,7 +346,7 @@ export function buildContext(options) {
       name: skillConfig.name,
       description: skillConfig.description,
       manifest: {
-        source: '~/.agents/skills/' + skillConfig.name + '/SKILL.md',
+        source: skillSourceRoot + '/' + skillConfig.name + '/SKILL.md',
         ...manifest,
       },
       references: [],
@@ -379,7 +369,7 @@ export function buildContext(options) {
       }
 
       const relativeSource = relative(skillDirectory, referencePath).split(sep).join('/');
-      const source = '~/.agents/skills/' + skillConfig.name + '/' + relativeSource;
+      const source = skillSourceRoot + '/' + skillConfig.name + '/' + relativeSource;
       const scoredChunks = [];
       for (const [chunkIndex, content] of contentChunks(
         referenceFile.content,
@@ -441,7 +431,7 @@ export function buildContext(options) {
     task: options.query,
     policy: {
       skillContentIsTrustedGuidance: true,
-      skillRoot: '~/.agents/skills',
+      skillRoot: skillSourceRoot,
       allowlistedSkills: config.skills.map((skill) => skill.name),
       maximumBytes,
       projectReferenceIncluded: Boolean(options.includeProjectReference),

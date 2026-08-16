@@ -45,6 +45,8 @@ Thumbs.db
 
 # Local AI connection and generated artifacts
 .env.local-ai
+/.agents
+/skills-lock.json
 /.agent
 /.agent-tmp
 /ai/generated

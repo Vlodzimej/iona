@@ -16,6 +16,8 @@
       "referenceTriggers": [
         "component",
         "компонент",
+        "screen",
+        "экран",
         "signal",
         "сигнал",
         "реактив",
@@ -42,6 +44,8 @@
       "referenceRoutes": {
         "component": "references/components.md",
         "компонент": "references/components.md",
+        "screen": "references/components.md",
+        "экран": "references/components.md",
         "signal": "references/signals-overview.md",
         "сигнал": "references/signals-overview.md",
         "http": "references/http-client.md",
@@ -50,9 +54,13 @@
         "router": "references/define-routes.md",
         "route": "references/define-routes.md",
         "routing": "references/define-routes.md",
-        "маршрут": "references/define-routes.md"
+        "маршрут": "references/define-routes.md",
+        "guard": "references/route-guards.md",
+        "защит": "references/route-guards.md",
+        "test": "references/testing-fundamentals.md",
+        "тест": "references/testing-fundamentals.md"
       },
-      "maxReferences": 3
+      "maxReferences": 4
     },
     {
       "name": "capacitor-plugins",
@@ -74,6 +82,8 @@
         "notification",
         "keyboard",
         "network",
+        "сеть",
+        "сети",
         "barcode",
         "share"
       ],
@@ -87,19 +97,24 @@
         "notification": "references/capacitor-push-notifications.md",
         "keyboard": "references/capacitor-keyboard.md",
         "network": "references/capacitor-network.md",
-        "filesystem": "references/capacitor-filesystem.md"
+        "сеть": "references/capacitor-network.md",
+        "сети": "references/capacitor-network.md",
+        "filesystem": "references/capacitor-filesystem.md",
+        "transfer": "references/capacitor-file-transfer.md",
+        "передач": "references/capacitor-file-transfer.md"
       },
       "maxReferences": 3
     }
   ],
   "retrieval": {
-    "maxBytes": 6000,
+    "maxBytes": 7200,
     "minimumReferenceScore": 100,
     "manifestExcerptCharacters": 900,
     "referenceChunkCharacters": 1200,
     "maxReferenceBytes": 50000,
     "queryAliases": {
       "компонент": ["component", "components"],
+      "экран": ["screen", "component", "components"],
       "сигнал": ["signal", "signals", "linked-signal", "effects"],
       "реактив": ["signal", "signals", "reactivity"],
       "эффект": ["effect", "effects"],
@@ -120,6 +135,7 @@
       "уведомлен": ["notifications", "push-notifications", "local-notifications"],
       "клавиатур": ["keyboard"],
       "сеть": ["network", "http"],
+      "сети": ["network", "http"],
       "биометр": ["biometric", "capgo-plugin-catalog"],
       "хранилищ": ["preferences", "filesystem", "storage"],
       "поделиться": ["share"],

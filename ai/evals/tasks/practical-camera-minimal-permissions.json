@@ -1,0 +1,33 @@
+{
+  "id": "practical-camera-minimal-permissions",
+  "title": "Plan camera capture with minimal permissions",
+  "category": "security",
+  "prompt": "Практическая задача: приложению нужно только сделать фото камерой, показать preview и не сохранять снимок в gallery. Выбери official-first Capacitor plugin, опиши Web/Android/iOS availability, минимальную конфигурацию и permissions без лишних прав. Не используй код проекта и закончи списком Skill sources.",
+  "readOnly": true,
+  "expectedSkills": ["capacitor-plugins"],
+  "expectedReferences": ["capacitor-plugins/references/capacitor-camera.md"],
+  "checks": [
+    {
+      "type": "contains",
+      "values": [
+        "@capacitor/camera",
+        "Web",
+        "Android",
+        "iOS",
+        "NSCameraUsageDescription",
+        "Skill sources"
+      ]
+    },
+    {
+      "type": "not-contains",
+      "values": [
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "RECORD_AUDIO",
+        "@capacitor-community/camera",
+        "<|channel|>"
+      ]
+    }
+  ],
+  "timeoutSeconds": 120
+}

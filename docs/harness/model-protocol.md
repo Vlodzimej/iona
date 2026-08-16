@@ -19,7 +19,7 @@ Model server предоставляет HTTP API, совместимый с Chat
 | `LOCAL_AI_MAX_TOKENS`       | Maximum completion tokens | 4096                                                          |
 | `LOCAL_AI_TEMPERATURE`      | Случайность генерации     | 0.1                                                           |
 | `LOCAL_AI_REASONING_EFFORT` | Уровень reasoning         | `low`, также допустимы `medium`, `high`                       |
-| `LOCAL_AI_SKILL_MAX_BYTES`  | Бюджет skill context      | 6000 bytes в текущем baseline                                 |
+| `LOCAL_AI_SKILL_MAX_BYTES`  | Бюджет skill context      | 7200 bytes в текущем baseline                                 |
 
 Секретные значения нельзя передавать через аргументы CLI, где они могут попасть в shell history. Используйте local env file или secret injection среды исполнения.
 

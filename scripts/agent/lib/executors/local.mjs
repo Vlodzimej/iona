@@ -1,8 +1,9 @@
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, realpathSync } from 'node:fs';
-import { homedir, platform, tmpdir } from 'node:os';
+import { platform, tmpdir } from 'node:os';
 import { dirname, resolve } from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
+import { userSkillRoot } from '../../../local-ai/lib/env.mjs';
 import { worktreePatch, worktreeStatus } from '../worktree.mjs';
 
 function git(root, args, options = {}) {
@@ -28,7 +29,6 @@ function sbplString(value) {
 }
 
 export function sandboxProfile(worktreeRoot) {
-  const userHome = homedir();
   const dependencyLink = resolve(worktreeRoot, 'node_modules');
   const nodeRuntimeRoot = resolve(dirname(process.execPath), '..');
   const allowedReadRoots = [
@@ -40,7 +40,7 @@ export function sandboxProfile(worktreeRoot) {
     '/opt',
     '/dev',
     worktreeRoot,
-    resolve(userHome, '.agents/skills'),
+    userSkillRoot(),
     nodeRuntimeRoot,
     ...(existsSync(dependencyLink) ? [realpathSync(dependencyLink)] : []),
   ];

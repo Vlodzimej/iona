@@ -1,0 +1,34 @@
+{
+  "id": "practical-plugin-api-evidence",
+  "title": "Recommend a plugin without inventing its API",
+  "category": "security",
+  "prompt": "Практическая задача: выбери пакет для native biometric на Android/iOS по доступному catalog excerpt. Дай только подтверждённые им сведения. Если excerpt не содержит API, прямо потребуй проверить package documentation и не называй классы или методы. Не используй код проекта и закончи списком Skill sources.",
+  "readOnly": true,
+  "expectedSkills": ["capacitor-plugins"],
+  "expectedReferences": ["capacitor-plugins/references/capgo-plugin-catalog.md"],
+  "checks": [
+    {
+      "type": "contains",
+      "values": ["@capgo/capacitor-native-biometric", "Android", "iOS", "Skill sources"]
+    },
+    {
+      "type": "contains-any",
+      "values": ["package documentation", "документац"]
+    },
+    {
+      "type": "not-contains",
+      "values": [
+        "NativeBiometric.",
+        "Biometric.",
+        "@capacitor/biometrics",
+        "Face ID",
+        "Touch ID",
+        "PIN",
+        "NSFaceIDUsageDescription",
+        "NSBiometricsUsageDescription",
+        "<|channel|>"
+      ]
+    }
+  ],
+  "timeoutSeconds": 120
+}

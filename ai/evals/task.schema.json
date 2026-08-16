@@ -31,7 +31,7 @@
         "additionalProperties": false,
         "required": ["type", "values"],
         "properties": {
-          "type": { "enum": ["contains", "not-contains"] },
+          "type": { "enum": ["contains", "contains-any", "not-contains", "not-matches"] },
           "values": {
             "type": "array",
             "items": { "type": "string" },

@@ -1,0 +1,20 @@
+{
+  "id": "angular-signal-forms",
+  "title": "Design a typed Angular Signal Form",
+  "category": "angular",
+  "prompt": "Опиши компактную архитектуру новой типизированной формы профиля на Angular Signal Forms: модель хранится в signal, поля связываются через FormField, есть синхронная валидация и submit. Код проекта не используй и не угадывай точную версию. Назови пакет импорта и закончи списком Skill sources.",
+  "readOnly": true,
+  "expectedSkills": ["angular-developer"],
+  "expectedReferences": ["angular-developer/references/signal-forms.md"],
+  "checks": [
+    {
+      "type": "contains",
+      "values": ["@angular/forms/signals", "FormField", "signal", "Skill sources"]
+    },
+    {
+      "type": "not-contains",
+      "values": ["@angular/forms/signal\"", "<|channel|>"]
+    }
+  ],
+  "timeoutSeconds": 120
+}

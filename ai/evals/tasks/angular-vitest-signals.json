@@ -1,0 +1,24 @@
+{
+  "id": "angular-vitest-signals",
+  "title": "Test an Angular signal component",
+  "category": "testing",
+  "prompt": "Дай короткий план Vitest-теста Angular-компонента с signal-состоянием и OnPush: создать fixture, дождаться fixture.whenStable(), проверить DOM и обновление signal. Не используй код проекта, не добавляй ручной fixture.detectChanges() и закончи списком Skill sources.",
+  "readOnly": true,
+  "expectedSkills": ["angular-developer"],
+  "expectedReferences": ["angular-developer/references/testing-fundamentals.md"],
+  "checks": [
+    {
+      "type": "contains",
+      "values": ["fixture.whenStable()", "signal", "Skill sources"]
+    },
+    {
+      "type": "contains-any",
+      "values": ["Vitest", "TestBed"]
+    },
+    {
+      "type": "not-contains",
+      "values": ["<|channel|>"]
+    }
+  ],
+  "timeoutSeconds": 120
+}

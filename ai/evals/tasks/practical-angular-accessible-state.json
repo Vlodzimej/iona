@@ -1,0 +1,37 @@
+{
+  "id": "practical-angular-accessible-state",
+  "title": "Refactor an accessible Angular data screen",
+  "category": "hybrid-architecture",
+  "prompt": "Практическая задача: спроектируй минимальный standalone Angular-экран списка. Данные получает сервис через HttpClient; экран должен иметь signal-состояние, derived state, loading/error/empty, доступное объявление ошибки и короткий Vitest-план проверки DOM. Не используй код проекта и не угадывай версию. Предпочти современный Angular control flow и закончи списком Skill sources.",
+  "readOnly": true,
+  "expectedSkills": ["angular-developer"],
+  "expectedReferences": [
+    "angular-developer/references/components.md",
+    "angular-developer/references/http-client.md",
+    "angular-developer/references/testing-fundamentals.md",
+    "angular-developer/references/signals-overview.md"
+  ],
+  "checks": [
+    {
+      "type": "contains",
+      "values": [
+        "HttpClient",
+        "signal",
+        "computed",
+        "@if",
+        "aria-live",
+        "fixture.whenStable()",
+        "Skill sources"
+      ]
+    },
+    {
+      "type": "not-contains",
+      "values": ["Observable.of", "fixture.detectChanges()", "<|channel|>"]
+    },
+    {
+      "type": "not-matches",
+      "values": ["<[a-z][^>]*\\s@if\\b", "<[a-z][^>]*\\s@for\\b", "\\*ng(?:If|For)\\b"]
+    }
+  ],
+  "timeoutSeconds": 150
+}

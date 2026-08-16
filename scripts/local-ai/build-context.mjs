@@ -41,7 +41,7 @@ if (!parsed.query) {
 const context = buildContext({
   query: parsed.query,
   includeProjectReference: parsed.includeProjectReference,
-  maximumSkillBytes: numberFromEnv('LOCAL_AI_SKILL_MAX_BYTES', 6000, {
+  maximumSkillBytes: numberFromEnv('LOCAL_AI_SKILL_MAX_BYTES', 7200, {
     minimum: 4000,
     maximum: 1000000,
   }),

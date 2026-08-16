@@ -70,6 +70,34 @@ npm run ai:ask -- --with-project-reference "Покажи, как адаптир�
 
 `ai:ask` is read-only: it prints the answer and never applies model-generated changes.
 
+## Evaluate the local model
+
+Validate every frozen task and its expected skill retrieval without contacting the model:
+
+```sh
+npm run ai:test
+```
+
+Run the same tasks against the configured model and create a standalone HTML report under the ignored `ai/reports` directory:
+
+```sh
+npm run ai:eval
+npm run ai:eval -- --repeat 3
+npm run ai:eval -- --task capacitor-network-offline
+npm run ai:eval -- --provider codex --output ai/reports/codex.html
+```
+
+The local provider uses at most one bounded repair by default; `--repair-attempts 0` measures one-shot behavior. Reports include selected references, deterministic answer checks, attempts, length, latency, and the visible model response. They exclude connection details, credentials, prompts, hidden reasoning, environment values, and project files. A failing run still produces HTML plus a safe JSON sidecar before the command exits unsuccessfully.
+
+Rescore unchanged answers after check-only changes and create a comparative web report:
+
+```sh
+npm run ai:rescore -- --input ai/reports/local.json --output ai/reports/local-rescored.html
+npm run ai:compare -- --local ai/reports/local-rescored.json --codex ai/reports/codex.json
+```
+
+See the [evaluation guide](../docs/harness/evaluations.md) for metric definitions and rescore constraints.
+
 ## Run the coding agent
 
 The coding-agent runtime reuses the same model connection and trusted skill
@@ -103,14 +131,14 @@ executor. See the connected
 - `prompts/agent.md` — coding-agent tool and safety contract.
 - `remote-model.md` — provider-neutral endpoint and optional tunnel instructions.
 - `evals/task.schema.json` — evaluation task contract.
-- `evals/tasks` — frozen Angular and Capacitor routing checks.
+- `evals/tasks` — frozen Angular and Capacitor retrieval, answer, safety, and practical checks.
 
 Connection settings, generated contexts, agent worktrees and transcripts,
 evaluation reports, model runs, datasets, and weights remain ignored by Git.
 
 ## Context-window tuning
 
-The harness uses a conservative 6 KB skill budget with excerpt/chunk retrieval.
+The harness uses a conservative 7.2 KB skill budget with excerpt/chunk retrieval.
 Choose the model context window for the available hardware and measured task
 set; 32 KB is a useful starting target when the runtime supports it.
 

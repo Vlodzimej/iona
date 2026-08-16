@@ -1,10 +1,42 @@
 import { existsSync, readFileSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const currentDirectory = dirname(fileURLToPath(import.meta.url));
 
 export const projectRoot = resolve(currentDirectory, '../../..');
+export const skillSourceRoot = '~/.agents/skills';
+export const containerSkillRoot = '/skills';
+
+export function userSkillRoot() {
+  return resolve(homedir(), '.agents/skills');
+}
+
+export function normalizeSkillSourcePaths(value) {
+  return String(value).replaceAll(userSkillRoot(), skillSourceRoot);
+}
+
+export function runtimeSkillRoot(environment = process.env) {
+  const configured = environment.LOCAL_AI_SKILL_ROOT?.trim();
+  const mounted = environment.LOCAL_AI_SKILLS_MOUNTED === '1';
+
+  if (!mounted) {
+    if (configured) {
+      throw new Error(
+        'LOCAL_AI_SKILL_ROOT is reserved for the internal Docker mount; install skills under ' +
+          skillSourceRoot +
+          '.',
+      );
+    }
+    return userSkillRoot();
+  }
+
+  if (configured !== containerSkillRoot) {
+    throw new Error('The internal skill mount must use ' + containerSkillRoot + '.');
+  }
+  return containerSkillRoot;
+}
 
 function parseEnvLine(line) {
   const trimmed = line.trim();

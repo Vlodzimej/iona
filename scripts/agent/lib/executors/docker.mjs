@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto';
 import { chmodSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
-import { homedir } from 'node:os';
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { containerSkillRoot, userSkillRoot } from '../../../local-ai/lib/env.mjs';
 import { worktreePatch, worktreeStatus } from '../worktree.mjs';
 
 function mount(source, destination, readOnly = false) {
@@ -75,9 +75,16 @@ export function dockerRunArguments(context, action, actionArguments = []) {
     '--env',
     'NG_CLI_ANALYTICS=false',
   ];
-  const skills = resolve(homedir(), '.agents/skills');
+  const skills = userSkillRoot();
   if (existsSync(skills)) {
-    args.push('--mount', mount(skills, '/skills', true), '--env', 'LOCAL_AI_SKILL_ROOT=/skills');
+    args.push(
+      '--mount',
+      mount(skills, containerSkillRoot, true),
+      '--env',
+      'LOCAL_AI_SKILLS_MOUNTED=1',
+      '--env',
+      'LOCAL_AI_SKILL_ROOT=' + containerSkillRoot,
+    );
   }
   args.push(docker.image, action, ...actionArguments);
   return args;

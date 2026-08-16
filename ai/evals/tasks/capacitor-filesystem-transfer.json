@@ -1,0 +1,32 @@
+{
+  "id": "capacitor-filesystem-transfer",
+  "title": "Separate file storage from transfer",
+  "category": "capacitor",
+  "prompt": "Объясни official-first архитектуру загрузки большого файла и его локального хранения в Capacitor для Web/Android/iOS. Раздели обязанности File Transfer и Filesystem, упомяни iOS privacy manifest и не используй код проекта. Закончи списком Skill sources.",
+  "readOnly": true,
+  "expectedSkills": ["capacitor-plugins"],
+  "expectedReferences": [
+    "capacitor-plugins/references/capacitor-file-transfer.md",
+    "capacitor-plugins/references/capacitor-filesystem.md"
+  ],
+  "checks": [
+    {
+      "type": "contains",
+      "values": [
+        "@capacitor/file-transfer",
+        "@capacitor/filesystem",
+        "PrivacyInfo.xcprivacy",
+        "Skill sources"
+      ]
+    },
+    {
+      "type": "not-contains",
+      "values": ["<|channel|>"]
+    },
+    {
+      "type": "not-matches",
+      "values": ["await\\s+Filesystem\\.downloadFile\\s*\\("]
+    }
+  ],
+  "timeoutSeconds": 120
+}

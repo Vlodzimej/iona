@@ -25,9 +25,13 @@ flowchart LR
 | `npm run cap:check`                   | Offline-проверка загрузки config       |                                  нет |                                   нет |
 | `npm run docs:check`                  | Проверка внутренних Markdown links     |                                  нет |                                   нет |
 | `npm run ai:doctor`                   | Проверка skills/config/routing         |                                  нет |                                   нет |
+| `npm run ai:test`                     | Frozen schema и retrieval tests        |                                  нет |                                   нет |
 | `npm run ai:context -- --query "..."` | Показать выбранный context bundle      |                                  нет |    только с `--output` в ignored path |
 | `npm run ai:smoke`                    | Проверка endpoint/model response       |                                   да |                                   нет |
 | `npm run ai:ask -- "..."`             | Read-only консультация                 |                                   да |                                   нет |
+| `npm run ai:eval`                     | Eval модели + standalone HTML report   |                                   да |           только ignored `ai/reports` |
+| `npm run ai:rescore -- ...`           | Пересчитать неизменные model answers   |                                  нет |           только ignored `ai/reports` |
+| `npm run ai:compare -- ...`           | Сравнительный standalone HTML report   |                                  нет |           только ignored `ai/reports` |
 | `npm run agent:doctor`                | Проверка agent prerequisites/isolation |                                  нет |                                   нет |
 | `npm run agent:docker:build`          | Собрать pinned Docker runner image     | Docker build может скачать base/deps |                                   нет |
 | `npm run agent:test`                  | Tests policy/protocol/tools/runtime    |     mock endpoint в integration test |                    временные fixtures |
@@ -100,7 +104,7 @@ jq -c '{timestamp, type, iteration, tool, result}' \
 ~/.agents/skills/capacitor-plugins/SKILL.md
 ```
 
-Для другого расположения задайте `LOCAL_AI_SKILL_ROOT`, не изменяя versioned config под конкретного пользователя.
+Другие расположения намеренно не поддерживаются на host: это сохраняет единый доверенный user-scope и не позволяет подключённому проекту подменить инструкции. Путь `/skills` используется только как read-only mount внутри Docker.
 
 ### `The primary worktree must be clean`
 

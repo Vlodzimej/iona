@@ -115,7 +115,7 @@ skill-name/
     }
   ],
   "retrieval": {
-    "maxBytes": 6000,
+    "maxBytes": 7200,
     "manifestExcerptCharacters": 900,
     "referenceChunkCharacters": 1200
   }

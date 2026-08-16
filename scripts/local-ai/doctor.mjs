@@ -1,9 +1,8 @@
 import { existsSync } from 'node:fs';
-import { homedir } from 'node:os';
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { buildContext } from './lib/context.mjs';
-import { loadLocalAiEnv, projectRoot } from './lib/env.mjs';
+import { loadLocalAiEnv, projectRoot, runtimeSkillRoot } from './lib/env.mjs';
 
 function commandVersion(command, args = ['--version']) {
   const result = spawnSync(command, args, {
@@ -27,11 +26,16 @@ function selectedSources(context) {
 }
 
 const envFileLoaded = loadLocalAiEnv();
-const skillRoot = process.env.LOCAL_AI_SKILL_ROOT?.trim()
-  ? resolve(process.env.LOCAL_AI_SKILL_ROOT.trim().replace(/^~(?=\/|$)/u, homedir()))
-  : resolve(homedir(), '.agents/skills');
-const [nodeMajor, nodeMinor] = process.versions.node.split('.').map(Number);
 let errors = 0;
+let skillRoot;
+try {
+  skillRoot = runtimeSkillRoot();
+} catch (error) {
+  status('error', 'Skill root', error.message);
+  errors += 1;
+  skillRoot = runtimeSkillRoot({});
+}
+const [nodeMajor, nodeMinor] = process.versions.node.split('.').map(Number);
 
 if (nodeMajor > 24 || (nodeMajor === 24 && nodeMinor >= 15)) {
   status('ok', 'Node.js', process.versions.node);
@@ -83,7 +87,7 @@ for (const skillName of ['angular-developer', 'capacitor-plugins']) {
 try {
   const angularContext = buildContext({
     query: 'Angular signals HttpClient standalone component',
-    maximumSkillBytes: 6000,
+    maximumSkillBytes: 7200,
   });
   const angularSources = selectedSources(angularContext);
   const angularRouted = ['http-client.md', 'signals-overview.md'].every((name) =>
@@ -100,7 +104,7 @@ try {
 
   const capacitorContext = buildContext({
     query: 'Capacitor камера и биометрическая проверка',
-    maximumSkillBytes: 6000,
+    maximumSkillBytes: 7200,
   });
   const capacitorSources = selectedSources(capacitorContext);
   const capacitorRouted = ['capacitor-camera.md', 'capgo-plugin-catalog.md'].every((name) =>

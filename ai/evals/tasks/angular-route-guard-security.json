@@ -1,0 +1,28 @@
+{
+  "id": "angular-route-guard-security",
+  "title": "Explain Angular route guard boundaries",
+  "category": "security",
+  "prompt": "Объясни, как реализовать функциональный Angular route guard для авторизованного маршрута. Укажи тип guard, корректный способ вернуть redirect и явно напиши, что реальная авторизация должна проверяться server-side. Не используй код проекта и закончи списком Skill sources.",
+  "readOnly": true,
+  "expectedSkills": ["angular-developer"],
+  "expectedReferences": ["angular-developer/references/route-guards.md"],
+  "checks": [
+    {
+      "type": "contains",
+      "values": ["CanActivateFn", "UrlTree", "Skill sources"]
+    },
+    {
+      "type": "contains-any",
+      "values": ["server-side", "сервер"]
+    },
+    {
+      "type": "not-contains",
+      "values": ["<|channel|>"]
+    },
+    {
+      "type": "not-matches",
+      "values": ["return\\s+(?:this\\.)?router\\.navigate\\s*\\("]
+    }
+  ],
+  "timeoutSeconds": 120
+}

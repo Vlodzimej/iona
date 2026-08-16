@@ -284,7 +284,7 @@ export async function runAgent(task, options = {}) {
   const model = await resolveModel(modelConfig);
   const context = buildContext({
     query: task,
-    maximumSkillBytes: numberFromEnv('LOCAL_AI_SKILL_MAX_BYTES', 6000, {
+    maximumSkillBytes: numberFromEnv('LOCAL_AI_SKILL_MAX_BYTES', 7200, {
       minimum: 4000,
       maximum: 1000000,
     }),

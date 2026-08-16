@@ -1,0 +1,30 @@
+{
+  "id": "capacitor-network-offline",
+  "title": "Handle Capacitor network transitions",
+  "category": "capacitor",
+  "prompt": "Предложи provider-neutral сервис для Web/Android/iOS, который получает текущий статус сети через официальный Capacitor plugin, подписывается на изменения и корректно освобождает listener. Укажи package и API listener, не используй код проекта и закончи списком Skill sources.",
+  "readOnly": true,
+  "expectedSkills": ["capacitor-plugins"],
+  "expectedReferences": ["capacitor-plugins/references/capacitor-network.md"],
+  "checks": [
+    {
+      "type": "contains",
+      "values": [
+        "@capacitor/network",
+        "getStatus()",
+        "addListener",
+        "networkStatusChange",
+        "remove()",
+        "Web",
+        "Android",
+        "iOS",
+        "Skill sources"
+      ]
+    },
+    {
+      "type": "not-contains",
+      "values": ["@capacitor/connectivity", "<|channel|>"]
+    }
+  ],
+  "timeoutSeconds": 120
+}
