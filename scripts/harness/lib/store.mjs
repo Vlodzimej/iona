@@ -4,6 +4,7 @@ import {
   chmodSync,
   existsSync,
   mkdirSync,
+  readdirSync,
   readFileSync,
   renameSync,
   writeFileSync,
@@ -47,6 +48,14 @@ export function loadHarnessRun(repositoryRoot, runId) {
     throw new Error('Unsupported or mismatched harness run state.');
   }
   return state;
+}
+
+export function listHarnessRuns(repositoryRoot) {
+  const root = resolve(repositoryRoot, 'runs');
+  if (!existsSync(root)) return [];
+  return readdirSync(root, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && identifierPattern.test(entry.name))
+    .map((entry) => loadHarnessRun(repositoryRoot, entry.name));
 }
 
 export function appendHarnessEvent(repositoryRoot, runId, event) {

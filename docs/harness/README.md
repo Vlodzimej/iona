@@ -1,6 +1,6 @@
 # Harness: управляющий слой вокруг модели
 
-[Документация](../README.md) · [Подключение проектов](using-with-existing-projects.md) · [Архитектура](../architecture.md) · [Skills](required-skills.md) · [Покрытие](skill-coverage.md) · [Visual QA](visual-debugging.md) · [Retrieval](context-retrieval.md) · [Протокол](model-protocol.md) · [Тезаурус](../glossary.md)
+[Документация](../README.md) · [Подключение проектов](using-with-existing-projects.md) · [Архитектура](../architecture.md) · [Skills](required-skills.md) · [Покрытие](skill-coverage.md) · [Visual QA](visual-debugging.md) · [Тест-план](practical-test-plan.md) · [FAQ](faq.md) · [Retrieval](context-retrieval.md) · [Протокол](model-protocol.md) · [Тезаурус](../glossary.md)
 
 ## Определение простыми словами
 

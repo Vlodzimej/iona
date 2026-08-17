@@ -7,7 +7,7 @@ export const visualDeviceProfiles = Object.freeze({
   'pixel-8': Object.freeze({ width: 412, height: 915, deviceScaleFactor: 2.625, isMobile: true }),
 });
 
-function browserSnapshot({ maximumNodes }) {
+export function browserSnapshot({ maximumNodes }) {
   const ignoredTags = new Set(['SCRIPT', 'STYLE', 'META', 'LINK', 'NOSCRIPT', 'HEAD', 'PATH']);
   const nodes = [];
 
@@ -144,7 +144,8 @@ function browserSnapshot({ maximumNodes }) {
 }
 
 export class PlaywrightVisualBrowser {
-  async open(url, profileName) {
+  async open(target, profileName) {
+    const url = typeof target === 'string' ? target : target.url;
     const profile = visualDeviceProfiles[profileName];
     if (!profile) throw new Error('Unknown visual device profile: ' + profileName + '.');
     const browser = await chromium.launch({ headless: true });

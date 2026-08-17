@@ -17,6 +17,10 @@
           "limit": {
             "context": 32768,
             "output": 4096
+          },
+          "options": {
+            "reasoningEffort": "low",
+            "temperature": 0.1
           }
         }
       }

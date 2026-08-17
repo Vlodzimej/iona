@@ -38,14 +38,15 @@
 
 Критерий завершения: контрольные задачи заканчиваются без усечения и без внутренних служебных маркеров, а задержка укладывается в согласованный предел.
 
-## Visual QA — web milestone реализован
+## Visual QA — web и bounded native adapters реализованы
 
 - Реализованы отдельный opt-in MCP, controlled Playwright adapter, DOM geometry, accessibility observations и screenshots.
 - Реализованы immutable PNG baseline registry, deterministic pixel diff и standalone HTML report.
 - Добавлен browser eval с precision/recall/F1, latency и воспроизводимыми layout defects.
+- Реализованы restricted Android WebView/CDP adapter, iOS Simulator screenshot adapter и reuse существующей loopback Appium WebView session для Android/iOS devices.
+- Connection details остаются во внешнем registry; модель видит только opaque IDs, kind и capabilities.
 - Следующий web-этап: masks, perceptual metric и expected regions/design tokens.
-- Отдельно спроектировать Android WebView/CDP и iOS WKWebView adapters без выдачи модели произвольного ADB/Xcode/Safari control.
-- Расширить visual eval dataset перед включением multimodal reviewer.
+- Добавить live Android и physical-iOS gates на выделенных тестовых устройствах и расширить visual dataset перед включением multimodal reviewer.
 
 ## Этап 2 — Качество выбора знаний
 

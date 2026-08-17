@@ -30,7 +30,8 @@ async function response(operation) {
 server.registerTool(
   'list_targets',
   {
-    description: 'List opaque human-registered loopback visual target IDs without exposing URLs.',
+    description:
+      'List opaque human-registered web, Android WebView, iOS Simulator, and Appium target IDs without exposing connection details.',
     inputSchema: {},
   },
   () => response(() => ({ ok: true, targets: manager.assets().targets })),
@@ -48,10 +49,10 @@ server.registerTool(
 server.registerTool(
   'begin',
   {
-    description: 'Open a registered target in an isolated deterministic browser session.',
+    description: 'Open a registered web or native visual target through its restricted adapter.',
     inputSchema: {
       targetId: z.string().min(1),
-      profileName: z.enum(['desktop', 'iphone-15', 'pixel-8']).optional(),
+      profileName: z.enum(['desktop', 'iphone-15', 'pixel-8', 'native']).optional(),
     },
   },
   ({ targetId, profileName }) => response(() => manager.begin(targetId, profileName)),

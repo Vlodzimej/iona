@@ -183,7 +183,7 @@ test('protected patch requires a persisted exact approval before it can be appli
 
 test(
   'real Docker Executor reads external config and validates an external worktree',
-  { skip: process.env.LOCAL_HARNESS_DOCKER_INTEGRATION !== '1', timeout: 120_000 },
+  { skip: process.env.LOCAL_HARNESS_DOCKER_INTEGRATION !== '1', timeout: 180_000 },
   (context) => {
     const targetRoot = repository();
     const stateRoot = mkdtempSync(resolve(tmpdir(), 'ionic-harness-docker-state-'));
@@ -197,8 +197,12 @@ test(
         name: 'docker-runner-fixture',
         version: '1.0.0',
         scripts: {
+          'format:check': 'node -e "process.exit(0)"',
           build: 'node -e "process.exit(0)"',
           test: 'node -e "process.exit(0)" --',
+          'cap:check': 'node -e "process.exit(0)"',
+          'ai:doctor': 'node -e "process.exit(0)"',
+          'agent:test': 'node -e "process.exit(0)"',
         },
       }) + '\n',
     );

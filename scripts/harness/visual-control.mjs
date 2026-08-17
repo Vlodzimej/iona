@@ -5,6 +5,9 @@ import { VisualSessionManager } from './lib/visual-session.mjs';
 import {
   listVisualAssets,
   registerVisualBaseline,
+  registerAndroidWebViewTarget,
+  registerAppiumWebViewTarget,
+  registerIosSimulatorTarget,
   registerVisualTarget,
 } from './lib/visual-registry.mjs';
 
@@ -18,8 +21,31 @@ const stateRoot = harnessStateRoot({
   IONIC_HARNESS_STATE_ROOT: option('--state-root') || process.env.IONIC_HARNESS_STATE_ROOT,
 });
 const values = process.argv.slice(2).filter((value, index, all) => {
-  if (['--state-root', '--name'].includes(value)) return false;
-  return !['--state-root', '--name'].includes(all[index - 1]);
+  if (
+    [
+      '--state-root',
+      '--name',
+      '--serial',
+      '--application-id',
+      '--udid',
+      '--bundle-id',
+      '--url',
+      '--session-id',
+      '--platform',
+    ].includes(value)
+  )
+    return false;
+  return ![
+    '--state-root',
+    '--name',
+    '--serial',
+    '--application-id',
+    '--udid',
+    '--bundle-id',
+    '--url',
+    '--session-id',
+    '--platform',
+  ].includes(all[index - 1]);
 });
 const [command, repositoryPath, value] = values;
 
@@ -34,6 +60,25 @@ try {
       name: option('--name'),
       imagePath: value,
     });
+  } else if (command === 'android-webview') {
+    result = registerAndroidWebViewTarget(stateRoot, repository.id, {
+      name: option('--name'),
+      serial: option('--serial'),
+      applicationId: option('--application-id'),
+    });
+  } else if (command === 'ios-simulator') {
+    result = registerIosSimulatorTarget(stateRoot, repository.id, {
+      name: option('--name'),
+      udid: option('--udid'),
+      bundleId: option('--bundle-id'),
+    });
+  } else if (command === 'appium-webview') {
+    result = registerAppiumWebViewTarget(stateRoot, repository.id, {
+      name: option('--name'),
+      url: option('--url'),
+      sessionId: option('--session-id'),
+      platform: option('--platform'),
+    });
   } else if (command === 'list') {
     result = listVisualAssets(stateRoot, repository.id);
   } else if (command === 'status' && value) {
@@ -44,7 +89,7 @@ try {
     };
   } else {
     throw new Error(
-      'Usage: visual-control <target REPOSITORY URL|baseline REPOSITORY PNG|list REPOSITORY|status REPOSITORY RUN>',
+      'Usage: visual-control <target REPOSITORY URL|android-webview REPOSITORY --serial ID --application-id ID|ios-simulator REPOSITORY --udid ID [--bundle-id ID]|appium-webview REPOSITORY --url URL --session-id ID --platform ios|android|baseline REPOSITORY PNG|list REPOSITORY|status REPOSITORY RUN>',
     );
   }
   console.log(JSON.stringify({ repositoryId: repository.id, ...result }, null, 2));

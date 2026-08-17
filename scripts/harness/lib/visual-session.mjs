@@ -6,7 +6,8 @@ import { PNG } from 'pngjs';
 import { createRunId } from '../../agent/lib/worktree.mjs';
 import { secureJsonWrite } from './store.mjs';
 import { analyzeDomSnapshot } from './visual-analysis.mjs';
-import { PlaywrightVisualBrowser, visualDeviceProfiles } from './visual-browser.mjs';
+import { visualDeviceProfiles } from './visual-browser.mjs';
+import { VisualTargetAdapter } from './visual-native.mjs';
 import {
   listVisualAssets,
   resolveVisualBaseline,
@@ -16,6 +17,9 @@ import {
 import { writeVisualReport } from './visual-report.mjs';
 
 const runIdPattern = /^[a-zA-Z0-9-]+$/u;
+const maximumScreenshotBytes = 20 * 1024 * 1024;
+const maximumScreenshotPixels = 16_000_000;
+const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 
 function rounded(value, digits = 2) {
   const scale = 10 ** digits;
@@ -28,6 +32,8 @@ function publicState(state) {
     repositoryId: state.repositoryId,
     visualRunId: state.visualRunId,
     targetId: state.targetId,
+    targetKind: state.targetKind || 'web',
+    capabilities: [...(state.capabilities || ['dom', 'screenshot'])],
     profileName: state.profileName,
     status: state.status,
     artifacts: { ...state.artifacts },
@@ -42,8 +48,26 @@ function writeArtifact(path, value) {
   chmodSync(path, 0o600);
 }
 
+function validatedScreenshot(path) {
+  const image = readFileSync(path);
+  if (
+    image.byteLength < 24 ||
+    image.byteLength > maximumScreenshotBytes ||
+    !image.subarray(0, pngSignature.byteLength).equals(pngSignature) ||
+    image.toString('ascii', 12, 16) !== 'IHDR'
+  ) {
+    throw new Error('Visual adapter returned an invalid or oversized PNG screenshot.');
+  }
+  const width = image.readUInt32BE(16);
+  const height = image.readUInt32BE(20);
+  if (!width || !height || width * height > maximumScreenshotPixels) {
+    throw new Error('Visual screenshot exceeds the 16 megapixel limit.');
+  }
+  return image;
+}
+
 export class VisualSessionManager {
-  constructor({ stateRoot, repositoryId, browser = new PlaywrightVisualBrowser() }) {
+  constructor({ stateRoot, repositoryId, browser = new VisualTargetAdapter() }) {
     this.stateRoot = stateRoot;
     this.repositoryId = repositoryId;
     this.runsRoot = visualRunsRoot(stateRoot, repositoryId);
@@ -92,11 +116,17 @@ export class VisualSessionManager {
     return { state, handle };
   }
 
-  async begin(targetId, profileName = 'desktop') {
-    if (!visualDeviceProfiles[profileName]) {
-      throw new Error('Unknown visual device profile: ' + profileName + '.');
-    }
+  async begin(targetId, profileName) {
     const target = resolveVisualTarget(this.stateRoot, this.repositoryId, targetId);
+    const effectiveProfile = profileName || (target.kind === 'web' ? 'desktop' : 'native');
+    if (
+      (target.kind === 'web' && !visualDeviceProfiles[effectiveProfile]) ||
+      (target.kind !== 'web' && effectiveProfile !== 'native')
+    ) {
+      throw new Error(
+        'Visual device profile is incompatible with target kind ' + target.kind + '.',
+      );
+    }
     const visualRunId = 'visual-' + createRunId();
     const createdAt = new Date().toISOString();
     const state = {
@@ -104,7 +134,9 @@ export class VisualSessionManager {
       repositoryId: this.repositoryId,
       visualRunId,
       targetId,
-      profileName,
+      targetKind: target.kind,
+      capabilities: target.capabilities,
+      profileName: effectiveProfile,
       status: 'starting',
       artifacts: {},
       comparison: null,
@@ -114,7 +146,7 @@ export class VisualSessionManager {
     };
     this.save(state);
     try {
-      const handle = await this.browser.open(target.url, profileName);
+      const handle = await this.browser.open(target, effectiveProfile);
       this.handles.set(visualRunId, handle);
       state.status = 'active';
       this.save(state);
@@ -133,6 +165,9 @@ export class VisualSessionManager {
 
   async snapshot(visualRunId, maximumNodes = 500) {
     const { state, handle } = this.requireActive(visualRunId);
+    if (!(state.capabilities || ['dom', 'screenshot']).includes('dom')) {
+      throw new Error('DOM inspection is not available for this visual target.');
+    }
     const started = performance.now();
     const snapshot = await this.browser.snapshot(handle, maximumNodes);
     snapshot.durationMs = rounded(performance.now() - started);
@@ -155,6 +190,9 @@ export class VisualSessionManager {
 
   async measure(visualRunId, rules = {}) {
     const { state, handle } = this.requireActive(visualRunId);
+    if (!(state.capabilities || ['dom', 'screenshot']).includes('dom')) {
+      throw new Error('DOM measurement is not available for this visual target.');
+    }
     const started = performance.now();
     const snapshot = await this.browser.snapshot(handle, 500);
     const measurement = analyzeDomSnapshot(snapshot, rules);
@@ -175,6 +213,7 @@ export class VisualSessionManager {
     const path = resolve(this.runRoot(visualRunId), filename);
     const started = performance.now();
     await this.browser.screenshot(handle, path);
+    const image = validatedScreenshot(path);
     chmodSync(path, 0o600);
     state.artifacts.screenshot = filename;
     this.save(state);
@@ -183,7 +222,7 @@ export class VisualSessionManager {
       visualRunId,
       artifact: filename,
       durationMs: rounded(performance.now() - started),
-      sha256: createHash('sha256').update(readFileSync(path)).digest('hex'),
+      sha256: createHash('sha256').update(image).digest('hex'),
     };
   }
 
@@ -261,13 +300,25 @@ export class VisualSessionManager {
 
   async report(visualRunId) {
     const { state } = this.requireActive(visualRunId);
-    if (!state.artifacts.measurements) await this.measure(visualRunId);
+    if (
+      !state.artifacts.measurements &&
+      (state.capabilities || ['dom', 'screenshot']).includes('dom')
+    ) {
+      await this.measure(visualRunId);
+    }
     if (!state.artifacts.screenshot) await this.screenshot(visualRunId);
     const root = this.runRoot(visualRunId);
     const refreshed = this.load(visualRunId);
-    const measurement = JSON.parse(
-      readFileSync(resolve(root, refreshed.artifacts.measurements), 'utf8'),
-    );
+    const measurement = refreshed.artifacts.measurements
+      ? JSON.parse(readFileSync(resolve(root, refreshed.artifacts.measurements), 'utf8'))
+      : {
+          schemaVersion: 1,
+          skipped: true,
+          reason: 'DOM inspection is unavailable for this target.',
+          inspectedNodes: 0,
+          violations: [],
+          summary: { passed: true, violations: 0 },
+        };
     const comparison = refreshed.artifacts.comparison
       ? JSON.parse(readFileSync(resolve(root, refreshed.artifacts.comparison), 'utf8'))
       : null;
@@ -279,6 +330,7 @@ export class VisualSessionManager {
       runId: visualRunId,
       targetId: refreshed.targetId,
       profileName: refreshed.profileName,
+      targetKind: refreshed.targetKind,
       measurement,
       comparison,
       baselinePath: baseline?.path,
@@ -294,6 +346,7 @@ export class VisualSessionManager {
       visualRunId,
       artifact: filename,
       summary: measurement.summary,
+      domInspection: measurement.skipped ? 'unavailable' : 'completed',
       comparison: comparison
         ? { passed: comparison.passed, mismatchPercent: comparison.mismatchPercent }
         : null,

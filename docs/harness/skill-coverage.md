@@ -61,7 +61,7 @@
 
 Новый source нужен только для области, которую текущие packages не покрывают, например конкретного payment provider, корпоративного signing service или собственного design system. Перед включением проверьте source reputation, содержимое `SKILL.md`, references, команды и отсутствие конфликтов с harness policy.
 
-Visual inspection запущенного WebView и сравнение с изображениями не появляются от установки skill: для них нужен отдельный controlled browser/device tool layer. Текущий статус и проект расширения описаны в [руководстве по visual debugging](visual-debugging.md).
+Visual inspection запущенного WebView и сравнение с изображениями не появляются от установки skill: для них нужен отдельный controlled browser/device tool layer. Реализованные web, Android WebView, iOS Simulator screenshot и Appium adapters описаны в [руководстве по visual debugging](visual-debugging.md).
 
 ---
 

@@ -22,6 +22,9 @@ Commands:
   prepare PATH                   Build/cache the target dependency runner
   opencode --repo PATH [ARGS]    Start OpenCode through the enforced harness
   visual-target PATH URL         Register an exact HTTP loopback target
+  visual-android PATH OPTIONS    Register an authorized Android WebView target
+  visual-ios-sim PATH OPTIONS    Register a booted iOS Simulator screenshot target
+  visual-appium PATH OPTIONS     Register an existing loopback Appium WebView session
   visual-baseline PATH PNG       Register an immutable PNG design baseline
   visual-list PATH               List registered visual target and baseline IDs
   visual-status PATH RUN         Show a visual run and its external artifact directory
@@ -49,6 +52,15 @@ if (command === 'doctor') {
 } else if (command === 'visual-target') {
   script = 'scripts/harness/visual-control.mjs';
   forwarded = ['target', ...args];
+} else if (command === 'visual-android') {
+  script = 'scripts/harness/visual-control.mjs';
+  forwarded = ['android-webview', ...args];
+} else if (command === 'visual-ios-sim') {
+  script = 'scripts/harness/visual-control.mjs';
+  forwarded = ['ios-simulator', ...args];
+} else if (command === 'visual-appium') {
+  script = 'scripts/harness/visual-control.mjs';
+  forwarded = ['appium-webview', ...args];
 } else if (command === 'visual-baseline') {
   script = 'scripts/harness/visual-control.mjs';
   forwarded = ['baseline', ...args];

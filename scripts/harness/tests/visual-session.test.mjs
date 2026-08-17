@@ -6,7 +6,11 @@ import { resolve } from 'node:path';
 import test from 'node:test';
 import { PNG } from 'pngjs';
 import { registerRepository } from '../lib/registry.mjs';
-import { registerVisualBaseline, registerVisualTarget } from '../lib/visual-registry.mjs';
+import {
+  registerIosSimulatorTarget,
+  registerVisualBaseline,
+  registerVisualTarget,
+} from '../lib/visual-registry.mjs';
 import { VisualSessionManager } from '../lib/visual-session.mjs';
 
 function git(root, ...args) {
@@ -86,6 +90,46 @@ test('visual session keeps artifacts external and produces deterministic compari
     );
     await manager.finish(run.visualRunId);
     assert.equal(manager.status(run.visualRunId).status, 'completed');
+  } finally {
+    rmSync(targetRoot, { recursive: true, force: true });
+    rmSync(stateRoot, { recursive: true, force: true });
+  }
+});
+
+test('screenshot-only native target creates an honest report without calling DOM snapshot', async () => {
+  const targetRoot = mkdtempSync(resolve(tmpdir(), 'ionic-visual-native-target-'));
+  const stateRoot = mkdtempSync(resolve(tmpdir(), 'ionic-visual-native-state-'));
+  try {
+    git(targetRoot, 'init', '-b', 'main');
+    git(targetRoot, 'config', 'user.name', 'Visual Test');
+    git(targetRoot, 'config', 'user.email', 'visual@example.invalid');
+    writeFileSync(resolve(targetRoot, 'README.md'), 'fixture\n');
+    git(targetRoot, 'add', '.');
+    git(targetRoot, 'commit', '-m', 'fixture');
+    const repository = registerRepository(stateRoot, targetRoot);
+    const target = registerIosSimulatorTarget(stateRoot, repository.id, {
+      name: 'ios',
+      udid: 'AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE',
+    });
+    const browser = new FakeBrowser();
+    browser.snapshot = async () => {
+      throw new Error('DOM snapshot must not run.');
+    };
+    const manager = new VisualSessionManager({
+      stateRoot,
+      repositoryId: repository.id,
+      browser,
+    });
+    const run = await manager.begin(target.id);
+    const report = await manager.report(run.visualRunId);
+    assert.equal(report.domInspection, 'unavailable');
+    const html = readFileSync(
+      resolve(manager.runRoot(run.visualRunId), manager.load(run.visualRunId).artifacts.report),
+      'utf8',
+    );
+    assert.match(html, /DOM checks were skipped/u);
+    assert.match(html, /ios-simulator/u);
+    await manager.finish(run.visualRunId);
   } finally {
     rmSync(targetRoot, { recursive: true, force: true });
     rmSync(stateRoot, { recursive: true, force: true });

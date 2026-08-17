@@ -14,6 +14,8 @@ The connected Russian-language documentation portal explains the project from fi
 - [Required system skills](docs/harness/required-skills.md)
 - [Skill coverage across mobile development](docs/harness/skill-coverage.md)
 - [Visual debugging and mockup comparison](docs/harness/visual-debugging.md)
+- [Harness FAQ](docs/harness/faq.md)
+- [Practical harness test plan](docs/harness/practical-test-plan.md)
 - [OpenCode setup](docs/opencode.md)
 - [Build your own harness](docs/build-your-own-harness.md)
 - [Glossary](docs/glossary.md)

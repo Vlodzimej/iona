@@ -61,37 +61,62 @@ function parseArguments(args) {
   return result;
 }
 
-function repairPrompt(responseEvaluation, grounding) {
+function repairInstruction(check) {
+  if (check.type === 'not-matches' && check.value === '\\*ng(?:If|For)\\b') {
+    return '- Remove every *ngIf and *ngFor occurrence, including legacy alternatives.';
+  }
+  if (
+    check.type === 'not-matches' &&
+    ['<[a-z][^>]*\\s@if\\b', '<[a-z][^>]*\\s@for\\b'].includes(check.value)
+  ) {
+    return '- Use Angular control flow only as standalone @if/@for blocks, never as HTML attributes.';
+  }
+  if (check.type === 'not-contains') {
+    return (
+      '- FORBIDDEN literal substring (zero occurrences, including examples and caveats): "' +
+      check.value +
+      '"'
+    );
+  }
+  if (check.type === 'not-matches') {
+    return '- FORBIDDEN text pattern (zero matches): ' + check.value;
+  }
+  if (check.type === 'cited-reference') {
+    return '- Cite the used allowlisted source: ' + check.value;
+  }
+  return '- REQUIRED concept or literal wording: ' + check.value;
+}
+
+export function repairPrompt(responseEvaluation, grounding) {
   const failures = [...responseEvaluation.checks, ...grounding.checks].filter(
     (check) => !check.passed,
   );
+  const contract = [...responseEvaluation.checks, ...grounding.checks]
+    .map(repairInstruction)
+    .filter((instruction, index, instructions) => instructions.indexOf(instruction) === index);
   return (
     'Revise the complete answer once. Preserve correct content and fix every failed deterministic constraint:\n' +
-    failures
-      .map((check) => {
-        if (['not-contains', 'not-matches'].includes(check.type)) {
-          return '- Remove the unsupported claim or token: ' + check.value;
-        }
-        if (check.type === 'cited-reference') {
-          return '- Cite the used allowlisted source: ' + check.value;
-        }
-        return '- Include the required concept or wording: ' + check.value;
-      })
-      .join('\n') +
+    failures.map(repairInstruction).join('\n') +
+    '\nKeep satisfying the complete validation contract; do not regress a previously passing constraint:\n' +
+    contract.join('\n') +
     '\nReturn only the full revised answer. Keep it under 450 words and do not discuss the validator.'
   );
 }
 
 function codexPrompt(task) {
+  const requiredSources = [
+    ...task.expectedSkills.map((skill) => skill + '/SKILL.md'),
+    ...(task.expectedReferences ?? []),
+  ];
   return (
     task.prompt +
     '\n\nBENCHMARK CONTRACT\n' +
     '- This is read-only: do not inspect or modify project application files.\n' +
-    '- Load only task-relevant guidance from ' +
+    '- Read and use these exact task-relevant allowlisted sources under ' +
     skillSourceRoot +
-    '/angular-developer and ' +
-    skillSourceRoot +
-    '/capacitor-plugins.\n' +
+    ':\n' +
+    requiredSources.map((source) => '  - ' + source).join('\n') +
+    '\n' +
     '- Prefer a correct, compact answer under 450 words. Do not guess exact versions.\n' +
     '- For native plugins, name APIs, permissions, configuration, and platform behavior only when supported by the skill excerpt; otherwise require checking package documentation.\n' +
     '- End with `Skill sources` and list only skill paths actually used.'
@@ -211,7 +236,7 @@ for (let repeat = 1; repeat <= parsed.repeat; repeat += 1) {
       if (parsed.provider === 'local') {
         const prepared = createReadOnlyRequest(task.prompt);
         retrieval = evaluateRetrieval(task, prepared.context);
-        const timeoutMs = Math.min(config.timeoutMs, (task.timeoutSeconds ?? 120) * 1000);
+        const timeoutMs = task.timeoutSeconds ? task.timeoutSeconds * 1000 : config.timeoutMs;
         let messages = prepared.messages;
         for (let repair = 0; repair <= parsed.repairAttempts; repair += 1) {
           attempts = repair + 1;

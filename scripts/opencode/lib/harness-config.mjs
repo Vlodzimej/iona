@@ -6,9 +6,10 @@ export function parseHarnessLauncherArguments(args, defaultRepository) {
   let profile = 'angular-ionic-capacitor';
   let stateRoot;
   let visual = false;
+  let timeoutSeconds;
   for (let index = 0; index < args.length; index += 1) {
     const argument = args[index];
-    if (['--repo', '--profile', '--state-root'].includes(argument)) {
+    if (['--repo', '--profile', '--state-root', '--timeout-seconds'].includes(argument)) {
       const value = args[index + 1];
       if (!value) {
         throw new Error(argument + ' requires a value.');
@@ -16,6 +17,12 @@ export function parseHarnessLauncherArguments(args, defaultRepository) {
       if (argument === '--repo') repositoryPath = value;
       if (argument === '--profile') profile = value;
       if (argument === '--state-root') stateRoot = value;
+      if (argument === '--timeout-seconds') {
+        timeoutSeconds = Number(value);
+        if (!Number.isInteger(timeoutSeconds) || timeoutSeconds < 30 || timeoutSeconds > 14_400) {
+          throw new Error('--timeout-seconds must be an integer from 30 to 14400.');
+        }
+      }
       index += 1;
     } else if (argument === '--visual') {
       visual = true;
@@ -23,7 +30,26 @@ export function parseHarnessLauncherArguments(args, defaultRepository) {
       forwarded.push(argument);
     }
   }
-  return { forwarded, repositoryPath, profile, stateRoot, visual };
+  return { forwarded, repositoryPath, profile, stateRoot, timeoutSeconds, visual };
+}
+
+export function openCodeRunOutcomeError(forwarded, previousRunIds, currentRuns) {
+  if (forwarded[0] !== 'run') return null;
+  const previous = new Set(previousRunIds);
+  const created = currentRuns.filter((run) => !previous.has(run.runId));
+  if (created.length !== 1) {
+    return 'OpenCode run did not create exactly one controlled harness run.';
+  }
+  if (!['ready', 'waiting_approval'].includes(created[0].status)) {
+    return (
+      'OpenCode exited before harness run ' +
+      created[0].runId +
+      ' reached ready or waiting_approval status (current: ' +
+      created[0].status +
+      ').'
+    );
+  }
+  return null;
 }
 
 export function createEnforcedOpenCodeConfig({
@@ -51,6 +77,7 @@ export function createEnforcedOpenCodeConfig({
           'gpt-oss-20b': {
             name: 'gpt-oss-20b',
             limit: { context: 32768, output: 4096 },
+            options: { reasoningEffort: 'low', temperature: 0.1 },
           },
         },
       },

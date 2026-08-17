@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   createEnforcedOpenCodeConfig,
+  openCodeRunOutcomeError,
   parseHarnessLauncherArguments,
 } from '../lib/harness-config.mjs';
 
@@ -15,11 +16,48 @@ test('OpenCode harness launcher separates its flags from OpenCode arguments', ()
       repositoryPath: '/target',
       profile: 'strict',
       stateRoot: undefined,
+      timeoutSeconds: undefined,
       visual: false,
       forwarded: ['run', 'Inspect the app'],
     },
   );
   assert.throws(() => parseHarnessLauncherArguments(['--repo'], '/default'), /requires a value/u);
+  assert.deepEqual(
+    parseHarnessLauncherArguments(['--timeout-seconds', '240', 'run', 'Inspect'], '/default'),
+    {
+      repositoryPath: '/default',
+      profile: 'angular-ionic-capacitor',
+      stateRoot: undefined,
+      timeoutSeconds: 240,
+      visual: false,
+      forwarded: ['run', 'Inspect'],
+    },
+  );
+  assert.throws(
+    () => parseHarnessLauncherArguments(['--timeout-seconds', '5'], '/default'),
+    /30 to 14400/u,
+  );
+});
+
+test('automated OpenCode run cannot report success with an unfinished harness session', () => {
+  assert.equal(
+    openCodeRunOutcomeError(['run', 'Inspect'], [], [{ runId: 'run-1', status: 'ready' }]),
+    null,
+  );
+  assert.equal(
+    openCodeRunOutcomeError(
+      ['run', 'Protected change'],
+      [],
+      [{ runId: 'run-1', status: 'waiting_approval' }],
+    ),
+    null,
+  );
+  assert.match(openCodeRunOutcomeError(['run', 'Inspect'], [], []), /exactly one/u);
+  assert.match(
+    openCodeRunOutcomeError(['run', 'Inspect'], [], [{ runId: 'run-1', status: 'active' }]),
+    /exited before/u,
+  );
+  assert.equal(openCodeRunOutcomeError([], [], [{ runId: 'run-1', status: 'active' }]), null);
 });
 
 test('enforced OpenCode config denies built-ins and exposes only harness MCP tools', () => {
@@ -40,6 +78,10 @@ test('enforced OpenCode config denies built-ins and exposes only harness MCP too
     'project-123456789abc',
   );
   assert.deepEqual(config.instructions, ['/harness/ai/prompts/opencode-harness.md']);
+  assert.deepEqual(config.provider.lmstudio.models['gpt-oss-20b'].options, {
+    reasoningEffort: 'low',
+    temperature: 0.1,
+  });
   assert.equal(config.permission['ionic_visual_*'], undefined);
   assert.equal(config.mcp.ionic_visual, undefined);
 });

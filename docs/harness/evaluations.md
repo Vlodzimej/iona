@@ -1,12 +1,12 @@
 # Оценка качества harness
 
-[Harness](README.md) · [Retrieval](context-retrieval.md) · [Roadmap](../../ai/ROADMAP.md) · [Эксплуатация](../operations.md)
+[Harness](README.md) · [Retrieval](context-retrieval.md) · [Практический тест-план](practical-test-plan.md) · [Roadmap](../../ai/ROADMAP.md) · [Эксплуатация](../operations.md)
 
 ## Зачем нужны evaluations
 
 Изменение prompt, alias или context budget часто улучшает один пример и незаметно ухудшает другой. Evaluation suite превращает субъективное «кажется, отвечает лучше» в повторяемое сравнение.
 
-Eval — это зафиксированная задача с ожидаемыми источниками, обязательными фактами и запрещёнными ошибками. В репозитории есть исполняемый начальный набор из десяти Angular/Capacitor scenarios, включая practical cases на accessibility, минимальные permissions и запрет неподтверждённых plugin APIs. Его следует расширять до полноценного coding benchmark по мере появления реальных ошибок.
+Eval — это зафиксированная задача с ожидаемыми источниками, обязательными фактами и запрещёнными ошибками. В репозитории есть исполняемый набор из 12 Angular/Ionic/Capacitor scenarios, включая practical cases на accessibility, минимальные permissions, lifecycle, deep links и запрет неподтверждённых plugin APIs. Его следует расширять до полноценного coding benchmark по мере появления реальных ошибок.
 
 ## Запуск
 
@@ -153,7 +153,24 @@ flowchart LR
 - общий pass rate не ниже 90% по трём deterministic runs;
 - `finish_reason=stop` и отсутствие raw channel markers.
 
-Это целевые ворота развития, а не заявление, что начальный набор уже обеспечивает достаточное покрытие. Текущее состояние — десять functional/practical regression tasks, offline retrieval tests, bounded repair, local/Codex runners и сравнительный HTML-отчёт. Изолированные patch/build tasks и agent scenarios ещё нужно расширять.
+Это целевые ворота развития, а не заявление, что текущий набор уже обеспечивает достаточное покрытие. Текущее состояние — 12 functional/practical regression tasks, offline retrieval tests, bounded repair, local/Codex runners и сравнительный HTML-отчёт. Изолированные patch/build tasks, live-device scenarios и human correctness review ещё нужно расширять.
+
+## Практический release-набор
+
+Перед изменением prompt/retrieval сохраните local baseline, после изменения повторите провалившиеся задачи и затем весь suite:
+
+```bash
+npm run ai:eval -- --output ai/reports/local-before.html
+npm run ai:eval -- --task <failed-task-id> --output ai/reports/local-repair.html
+npm run ai:eval -- --output ai/reports/local-after.html
+npm run ai:eval -- --provider codex --output ai/reports/codex.html
+npm run ai:compare -- \
+  --local ai/reports/local-after.json \
+  --codex ai/reports/codex.json \
+  --output ai/reports/model-comparison.html
+```
+
+Для скорости измеряйте median и p95 минимум по трём repeats. Для правильности учитывайте per-task pass и human review. Для оптимальности сравнивайте attempts, длину ответа, число tool calls, размер patch и время validation. Дополнительные полезные критерии: стабильность между repeats, доля self-repair, число protected approvals, отсутствие лишних файлов и точность Visual QA.
 
 ## Правило выпуска
 

@@ -56,6 +56,16 @@ ionic-llm-harness doctor --repo /absolute/path/to/project
 ionic-llm-harness opencode --repo /absolute/path/to/project
 ```
 
+Для автоматического теста или CI задайте общий предел сеанса; интерактивный запуск по умолчанию не ограничен:
+
+```bash
+ionic-llm-harness opencode --repo /absolute/path/to/project --timeout-seconds 900 run "Проверь проект"
+```
+
+Предел охватывает весь процесс OpenCode, а не отдельный model request. При зависшей генерации launcher завершится с кодом `124`; незавершённый run затем нужно проверить через `status` и удалить через `discard`.
+
+Для команды `run` одного кода завершения OpenCode недостаточно. Launcher дополнительно требует ровно один новый harness run со статусом `ready` или `waiting_approval`. Если модель напечатала tool call как текст, оставила run `active` или вообще не вызвала `begin`, команда завершается ошибкой.
+
 User-scope команду один раз создаёт `npm link` в каталоге общей установки harness. Если link не нужен, используйте прежнюю форму `npm --prefix /path/to/harness run opencode -- --repo /path/to/project`.
 
 Launcher загружает `.env.local-ai` из общей установки, регистрирует целевой Git root, создаёт нейтральный OpenCode workspace во внешнем state root и передаёт обязательную inline-конфигурацию. Project-local `opencode.json` целевого репозитория не может вернуть прямые файловые полномочия, потому что OpenCode вообще не запускается из этого project tree, а enforced config загружается с более высоким приоритетом.
@@ -110,6 +120,10 @@ npm run harness:test
 ### OpenCode не найден
 
 Установите OpenCode официальным способом или задайте `OPENCODE_BIN`. Launcher не устанавливает и не обновляет binary.
+
+### Модель долго не вызывает первый tool
+
+Для bounded-прогона используйте `--timeout-seconds`. Harness не является skill: корректный первый repository tool — `ionic_harness_begin`; сообщение `Skill "ionic-harness" not found` означает ошибочный выбор инструмента моделью. Обновлённый system prompt явно запрещает такой вызов, но при его повторении запуск следует считать неуспешным, а не ждать бесконечно.
 
 ### MCP server не запускается
 

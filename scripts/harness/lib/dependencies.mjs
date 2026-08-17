@@ -44,7 +44,15 @@ function imageDigest(image) {
   return result.status === 0 ? result.stdout.trim() : null;
 }
 
-export function prepareProjectRunner({ harnessRoot, stateRoot, projectRoot }) {
+export function prepareProjectRunner({
+  harnessRoot,
+  stateRoot,
+  projectRoot,
+  buildTimeoutMs = 5 * 60_000,
+}) {
+  if (!Number.isInteger(buildTimeoutMs) || buildTimeoutMs < 1 || buildTimeoutMs > 15 * 60_000) {
+    throw new Error('Project runner build timeout must be from 1 ms to 15 minutes.');
+  }
   const descriptor = projectRunnerDescriptor(harnessRoot, projectRoot);
   if (imageDigest(descriptor.image) === descriptor.digest) {
     return { image: descriptor.image, digest: descriptor.digest, cached: true };
@@ -69,13 +77,13 @@ export function prepareProjectRunner({ harnessRoot, stateRoot, projectRoot }) {
       'HARNESS_DEPENDENCY_DIGEST=' + descriptor.digest,
       contextRoot,
     ],
-    { encoding: 'utf8', timeout: 15 * 60_000, maxBuffer: 16 * 1024 * 1024 },
+    { encoding: 'utf8', timeout: buildTimeoutMs, maxBuffer: 16 * 1024 * 1024 },
   );
   if (result.error?.code === 'ENOENT') {
     throw new Error('Docker CLI is not installed.');
   }
   if (result.error?.code === 'ETIMEDOUT') {
-    throw new Error('Project runner image build timed out.');
+    throw new Error('Project runner image build timed out after ' + buildTimeoutMs + ' ms.');
   }
   if (result.status !== 0 || imageDigest(descriptor.image) !== descriptor.digest) {
     const output = (result.stderr || result.stdout || result.error?.message || 'unknown error')

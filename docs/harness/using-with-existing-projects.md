@@ -183,7 +183,18 @@ ionic-llm-harness visual-list "$TARGET_PROJECT"
 ionic-llm-harness opencode --repo "$TARGET_PROJECT" --visual
 ```
 
-Флаг добавляет отдельный `ionic_visual_*` MCP namespace. Browser observations, screenshots и HTML reports сохраняются во внешнем state root и не изменяют target tree или lifecycle coding run. Полный workflow, ограничения и eval-команда описаны в [руководстве по Visual QA](visual-debugging.md).
+Флаг добавляет отдельный `ionic_visual_*` MCP namespace. Browser observations, screenshots и HTML reports сохраняются во внешнем state root и не изменяют target tree или lifecycle coding run. Кроме web URL можно human-register Android WebView, iOS Simulator или существующую loopback Appium session:
+
+```bash
+ionic-llm-harness visual-android "$TARGET_PROJECT" \
+  --serial emulator-5554 --application-id com.example.app --name android-debug
+ionic-llm-harness visual-ios-sim "$TARGET_PROJECT" \
+  --udid <SIMULATOR_UDID> --bundle-id com.example.app --name ios-sim
+ionic-llm-harness visual-appium "$TARGET_PROJECT" \
+  --url http://127.0.0.1:4723 --session-id <SESSION_ID> --platform ios --name ios-device
+```
+
+Полный workflow, platform prerequisites, capability matrix, ограничения и eval-команда описаны в [руководстве по Visual QA](visual-debugging.md).
 
 ## 5. Review, approval и применение результата
 

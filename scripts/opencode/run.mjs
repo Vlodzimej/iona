@@ -4,9 +4,11 @@ import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { loadLocalAiEnv, projectRoot } from '../local-ai/lib/env.mjs';
 import { harnessStateRoot } from '../harness/lib/paths.mjs';
-import { registerRepository } from '../harness/lib/registry.mjs';
+import { registerRepository, repositoryStateRoot } from '../harness/lib/registry.mjs';
+import { listHarnessRuns } from '../harness/lib/store.mjs';
 import {
   createEnforcedOpenCodeConfig,
+  openCodeRunOutcomeError,
   parseHarnessLauncherArguments,
 } from './lib/harness-config.mjs';
 
@@ -41,6 +43,8 @@ try {
 }
 const controllerRoot = resolve(stateRoot, 'opencode-workspaces', repository.id);
 mkdirSync(controllerRoot, { recursive: true, mode: 0o700 });
+const repositoryRoot = repositoryStateRoot(stateRoot, repository.id);
+const previousRunIds = listHarnessRuns(repositoryRoot).map((run) => run.runId);
 const enforcedConfig = createEnforcedOpenCodeConfig({
   harnessRoot: projectRoot,
   nodeExecutable: process.execPath,
@@ -59,6 +63,7 @@ const result = spawnSync(executable, parsed.forwarded, {
     OPENCODE_CONFIG_CONTENT: JSON.stringify(enforcedConfig),
   },
   stdio: 'inherit',
+  timeout: parsed.timeoutSeconds ? parsed.timeoutSeconds * 1000 : undefined,
 });
 
 if (result.error?.code === 'ENOENT') {
@@ -67,12 +72,26 @@ if (result.error?.code === 'ENOENT') {
 }
 
 if (result.error) {
+  if (result.error.code === 'ETIMEDOUT') {
+    console.error('OpenCode session timed out after ' + parsed.timeoutSeconds + ' seconds.');
+    process.exit(124);
+  }
   console.error('OpenCode failed to start: ' + result.error.message);
   process.exit(1);
 }
 
 if (result.signal) {
   console.error('OpenCode exited after signal ' + result.signal + '.');
+  process.exit(1);
+}
+
+const outcomeError = openCodeRunOutcomeError(
+  parsed.forwarded,
+  previousRunIds,
+  listHarnessRuns(repositoryRoot),
+);
+if (outcomeError) {
+  console.error(outcomeError);
   process.exit(1);
 }
 

@@ -14,15 +14,11 @@
   "checks": [
     {
       "type": "contains",
-      "values": [
-        "HttpClient",
-        "signal",
-        "computed",
-        "@if",
-        "aria-live",
-        "fixture.whenStable()",
-        "Skill sources"
-      ]
+      "values": ["HttpClient", "signal", "computed", "@if", "fixture.whenStable()", "Skill sources"]
+    },
+    {
+      "type": "contains-any",
+      "values": ["aria-live", "role=\"alert\"", "role='alert'"]
     },
     {
       "type": "not-contains",

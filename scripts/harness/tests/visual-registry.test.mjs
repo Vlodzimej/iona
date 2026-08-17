@@ -10,6 +10,9 @@ import {
   isAllowedVisualRequest,
   listVisualAssets,
   normalizeLoopbackUrl,
+  registerAndroidWebViewTarget,
+  registerAppiumWebViewTarget,
+  registerIosSimulatorTarget,
   registerVisualBaseline,
   registerVisualTarget,
   resolveVisualBaseline,
@@ -50,6 +53,33 @@ test('visual registry accepts only loopback targets and normalizes immutable PNG
       isAllowedVisualRequest('http://localhost:7331/private', 'http://localhost:4200'),
       false,
     );
+    const android = registerAndroidWebViewTarget(stateRoot, repository.id, {
+      name: 'pixel',
+      serial: 'emulator-5554',
+      applicationId: 'dev.example.app',
+    });
+    const simulator = registerIosSimulatorTarget(stateRoot, repository.id, {
+      name: 'iphone',
+      udid: 'AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE',
+      bundleId: 'dev.example.app',
+    });
+    const appium = registerAppiumWebViewTarget(stateRoot, repository.id, {
+      name: 'physical-ios',
+      url: 'http://127.0.0.1:4723',
+      sessionId: 'private-session-id',
+      platform: 'ios',
+    });
+    const publicTargets = listVisualAssets(stateRoot, repository.id).targets;
+    assert.deepEqual(publicTargets.map(({ kind }) => kind).sort(), [
+      'android-webview',
+      'appium-webview',
+      'ios-simulator',
+      'web',
+    ]);
+    assert.doesNotMatch(JSON.stringify(publicTargets), /emulator-5554|private-session-id/u);
+    assert.equal(android.capabilities.includes('dom'), true);
+    assert.deepEqual(simulator.capabilities, ['screenshot']);
+    assert.equal(appium.kind, 'appium-webview');
 
     const oversizedHeader = Buffer.alloc(24);
     Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).copy(oversizedHeader);
@@ -82,7 +112,9 @@ test('visual registry accepts only loopback targets and normalizes immutable PNG
     assert.doesNotMatch(resolved.path, new RegExp(targetRoot, 'u'));
     assert.doesNotThrow(() => PNG.sync.read(readFileSync(resolved.path)));
     assert.deepEqual(
-      listVisualAssets(stateRoot, repository.id).targets.map(({ id }) => id),
+      listVisualAssets(stateRoot, repository.id)
+        .targets.filter(({ kind }) => kind === 'web')
+        .map(({ id }) => id),
       [target.id],
     );
   } finally {

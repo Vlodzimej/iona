@@ -17,6 +17,16 @@ const slugPattern = /^[a-z0-9][a-z0-9-]{0,60}$/u;
 const maximumImageBytes = 20 * 1024 * 1024;
 const maximumImagePixels = 16_000_000;
 const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+const adbSerialPattern = /^[a-zA-Z0-9._:-]{1,128}$/u;
+const applicationIdPattern = /^[a-zA-Z][a-zA-Z0-9_-]*(?:\.[a-zA-Z][a-zA-Z0-9_-]*)+$/u;
+const simulatorUdidPattern = /^[a-fA-F0-9-]{8,64}$/u;
+const appiumSessionPattern = /^[a-zA-Z0-9._-]{1,256}$/u;
+const capabilitiesByKind = Object.freeze({
+  web: Object.freeze(['dom', 'screenshot']),
+  'android-webview': Object.freeze(['dom', 'screenshot']),
+  'ios-simulator': Object.freeze(['screenshot']),
+  'appium-webview': Object.freeze(['dom', 'screenshot']),
+});
 
 function secureJsonWrite(path, value) {
   const temporary = path + '.tmp-' + randomBytes(4).toString('hex');
@@ -117,12 +127,95 @@ export function registerVisualTarget(stateRoot, repositoryId, { name, url }) {
     schemaVersion: 1,
     id,
     name: slug(name, 'target'),
+    kind: 'web',
+    capabilities: ['dom', 'screenshot'],
     url: normalizedUrl,
     registeredAt: previous?.registeredAt || new Date().toISOString(),
     verifiedAt: new Date().toISOString(),
   };
   secureJsonWrite(registryPath(stateRoot, repositoryId), registry);
   return { id, name: registry.targets[id].name, registeredAt: registry.targets[id].registeredAt };
+}
+
+function nativeTarget(stateRoot, repositoryId, { name, kind, identity, capabilities, details }) {
+  const registry = loadRegistry(stateRoot, repositoryId);
+  const id = identified(kind, name, JSON.stringify([kind, identity]));
+  const previous = registry.targets[id];
+  registry.targets[id] = {
+    schemaVersion: 1,
+    id,
+    name: slug(name, kind),
+    kind,
+    capabilities,
+    ...details,
+    registeredAt: previous?.registeredAt || new Date().toISOString(),
+    verifiedAt: new Date().toISOString(),
+  };
+  secureJsonWrite(registryPath(stateRoot, repositoryId), registry);
+  return {
+    id,
+    name: registry.targets[id].name,
+    kind,
+    capabilities,
+    registeredAt: registry.targets[id].registeredAt,
+  };
+}
+
+export function registerAndroidWebViewTarget(
+  stateRoot,
+  repositoryId,
+  { name, serial, applicationId },
+) {
+  if (!adbSerialPattern.test(String(serial || ''))) {
+    throw new Error('Android device serial is invalid.');
+  }
+  if (!applicationIdPattern.test(String(applicationId || ''))) {
+    throw new Error('Android application ID is invalid.');
+  }
+  return nativeTarget(stateRoot, repositoryId, {
+    name,
+    kind: 'android-webview',
+    identity: [serial, applicationId],
+    capabilities: ['dom', 'screenshot'],
+    details: { serial, applicationId },
+  });
+}
+
+export function registerIosSimulatorTarget(stateRoot, repositoryId, { name, udid, bundleId }) {
+  if (!simulatorUdidPattern.test(String(udid || ''))) {
+    throw new Error('iOS Simulator UDID is invalid.');
+  }
+  if (bundleId && !applicationIdPattern.test(String(bundleId))) {
+    throw new Error('iOS bundle ID is invalid.');
+  }
+  return nativeTarget(stateRoot, repositoryId, {
+    name,
+    kind: 'ios-simulator',
+    identity: [udid, bundleId || ''],
+    capabilities: ['screenshot'],
+    details: { udid, bundleId: bundleId || null },
+  });
+}
+
+export function registerAppiumWebViewTarget(
+  stateRoot,
+  repositoryId,
+  { name, url, sessionId, platform },
+) {
+  const normalizedUrl = normalizeLoopbackUrl(url);
+  if (!appiumSessionPattern.test(String(sessionId || ''))) {
+    throw new Error('Appium session ID is invalid.');
+  }
+  if (!['android', 'ios'].includes(platform)) {
+    throw new Error('Appium platform must be android or ios.');
+  }
+  return nativeTarget(stateRoot, repositoryId, {
+    name,
+    kind: 'appium-webview',
+    identity: [normalizedUrl, sessionId, platform],
+    capabilities: ['dom', 'screenshot'],
+    details: { url: normalizedUrl, sessionId, platform },
+  });
 }
 
 export function registerVisualBaseline(stateRoot, repositoryId, { name, imagePath }) {
@@ -197,7 +290,13 @@ export function listVisualAssets(stateRoot, repositoryId) {
   const registry = loadRegistry(stateRoot, repositoryId);
   return {
     targets: Object.values(registry.targets)
-      .map(({ id, name, registeredAt }) => ({ id, name, registeredAt }))
+      .map(({ id, name, kind = 'web', capabilities = ['dom', 'screenshot'], registeredAt }) => ({
+        id,
+        name,
+        kind,
+        capabilities,
+        registeredAt,
+      }))
       .sort((left, right) => left.id.localeCompare(right.id)),
     baselines: Object.values(registry.baselines)
       .map(({ id, name, width, height, registeredAt }) => ({
@@ -215,7 +314,38 @@ export function resolveVisualTarget(stateRoot, repositoryId, targetId) {
   if (!visualIdPattern.test(targetId)) throw new Error('Invalid visual target ID.');
   const target = loadRegistry(stateRoot, repositoryId).targets[targetId];
   if (!target) throw new Error('Visual target is not registered: ' + targetId + '.');
-  return target;
+  const kind = target.kind || 'web';
+  if (!capabilitiesByKind[kind]) throw new Error('Unsupported visual target kind.');
+  let normalizedUrl;
+  if (kind === 'web') normalizedUrl = normalizeLoopbackUrl(target.url);
+  if (
+    kind === 'android-webview' &&
+    (!adbSerialPattern.test(String(target.serial || '')) ||
+      !applicationIdPattern.test(String(target.applicationId || '')))
+  ) {
+    throw new Error('Registered Android WebView target is invalid.');
+  }
+  if (
+    kind === 'ios-simulator' &&
+    (!simulatorUdidPattern.test(String(target.udid || '')) ||
+      (target.bundleId && !applicationIdPattern.test(String(target.bundleId))))
+  ) {
+    throw new Error('Registered iOS Simulator target is invalid.');
+  }
+  if (
+    kind === 'appium-webview' &&
+    (!appiumSessionPattern.test(String(target.sessionId || '')) ||
+      !['android', 'ios'].includes(target.platform))
+  ) {
+    throw new Error('Registered Appium WebView target is invalid.');
+  }
+  if (kind === 'appium-webview') normalizedUrl = normalizeLoopbackUrl(target.url);
+  return {
+    ...target,
+    ...(normalizedUrl ? { url: normalizedUrl } : {}),
+    kind,
+    capabilities: [...capabilitiesByKind[kind]],
+  };
 }
 
 export function resolveVisualBaseline(stateRoot, repositoryId, baselineId) {

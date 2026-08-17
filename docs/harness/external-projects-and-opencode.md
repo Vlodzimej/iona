@@ -82,7 +82,7 @@ npm run agent:docker:build
 
 Целевой проект должен быть Git-репозиторием с чистым primary checkout, `package.json` и `package-lock.json`. Harness не монтирует macOS `node_modules` в Linux-контейнер: native packages такого дерева несовместимы с Executor.
 
-Вместо этого создаётся project-specific runner image. Его identity — SHA-256 от `package.json`, `package-lock.json`, доверенного runner и Dockerfile. При первом использовании Docker выполняет `npm ci` в build context, содержащем только эти манифесты и runner; исходный код проекта туда не передаётся. Готовый image кэшируется по digest, а обычные patch/check containers продолжают работать без сети.
+Вместо этого создаётся project-specific runner image поверх предварительно собранного `ionic-llm-agent-runner:node-26`. Его identity — SHA-256 от `package.json`, `package-lock.json`, доверенного runner и Dockerfile. При первом использовании Docker выполняет `npm ci` в build context, содержащем только эти манифесты и runner; исходный код проекта туда не передаётся, а системный слой не загружается заново для каждого lockfile. Готовый image кэшируется по digest, а обычные patch/check containers продолжают работать без сети. Build имеет ограниченный timeout и при ошибке возвращает bounded tail вывода.
 
 Сначала выполните read-only preflight. Он проверяет общую установку, обязательные skills, OpenCode, model env, Docker и требования текущего profile; target files не меняются:
 
