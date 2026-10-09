@@ -89,18 +89,18 @@ export function createEnforcedOpenCodeConfig({
       question: 'allow',
       todowrite: 'allow',
       doom_loop: 'ask',
-      'ionic_harness_*': 'allow',
+      'iona_*': 'allow',
     },
     mcp: {
-      ionic_harness: {
+      iona: {
         type: 'local',
         command: [nodeExecutable, resolve(harnessRoot, 'scripts/harness/mcp.mjs')],
         enabled: true,
         timeout: 15_000,
         environment: {
-          IONIC_HARNESS_REPOSITORY_ID: repositoryId,
-          IONIC_HARNESS_PROFILE: profile,
-          IONIC_HARNESS_STATE_ROOT: stateRoot,
+          IONA_REPOSITORY_ID: repositoryId,
+          IONA_PROFILE: profile,
+          IONA_STATE_ROOT: stateRoot,
         },
       },
     },
@@ -115,8 +115,8 @@ export function createEnforcedOpenCodeConfig({
       enabled: true,
       timeout: 20_000,
       environment: {
-        IONIC_HARNESS_REPOSITORY_ID: repositoryId,
-        IONIC_HARNESS_STATE_ROOT: stateRoot,
+        IONA_REPOSITORY_ID: repositoryId,
+        IONA_STATE_ROOT: stateRoot,
       },
     };
   }

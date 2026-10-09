@@ -342,4 +342,4 @@ Retrieval-Augmented Generation — подход, где перед generation с
 
 ---
 
-← [Создание harness](build-your-own-harness.md) · [Документация](README.md) · [Презентация](presentation/ionic-llm-harness-overview.pptx)
+← [Создание harness](build-your-own-harness.md) · [Документация](README.md) · [Презентация](presentation/iona-overview.pptx)

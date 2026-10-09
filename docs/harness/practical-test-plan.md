@@ -34,7 +34,7 @@ Gate: retrieval ≥ 95%, общий pass rate ≥ 90% в трёх repeats, от�
 
 ## Уровень B: OpenCode + MCP + Docker
 
-Каждую задачу запускайте из clean тестового Git project через `ionic-llm-harness opencode --repo ... --timeout-seconds 900 run "..."`. Предел делает автоматический прогон bounded; для обычной интерактивной разработки его можно не задавать.
+Каждую задачу запускайте из clean тестового Git project через `iona opencode --repo ... --timeout-seconds 900 run "..."`. Предел делает автоматический прогон bounded; для обычной интерактивной разработки его можно не задавать.
 
 ### B1. Безопасная инспекция без patch
 

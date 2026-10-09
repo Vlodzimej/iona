@@ -69,14 +69,11 @@ test('enforced OpenCode config denies built-ins and exposes only harness MCP too
     stateRoot: '/state',
   });
   assert.equal(config.permission['*'], 'deny');
-  assert.equal(config.permission['ionic_harness_*'], 'allow');
+  assert.equal(config.permission['iona_*'], 'allow');
   assert.equal(config.permission.skill, 'allow');
   assert.equal(config.permission.edit, undefined);
-  assert.deepEqual(config.mcp.ionic_harness.command, ['/node', '/harness/scripts/harness/mcp.mjs']);
-  assert.equal(
-    config.mcp.ionic_harness.environment.IONIC_HARNESS_REPOSITORY_ID,
-    'project-123456789abc',
-  );
+  assert.deepEqual(config.mcp.iona.command, ['/node', '/harness/scripts/harness/mcp.mjs']);
+  assert.equal(config.mcp.iona.environment.IONA_REPOSITORY_ID, 'project-123456789abc');
   assert.deepEqual(config.instructions, ['/harness/ai/prompts/opencode-harness.md']);
   assert.deepEqual(config.provider.lmstudio.models['gpt-oss-20b'].options, {
     reasoningEffort: 'low',

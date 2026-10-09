@@ -11,7 +11,7 @@
   "executor": {
     "default": "docker",
     "docker": {
-      "image": "ionic-llm-agent-runner:node-26",
+      "image": "iona-agent-runner:node-26",
       "workspace": "/workspace",
       "network": "none",
       "cpus": 2,

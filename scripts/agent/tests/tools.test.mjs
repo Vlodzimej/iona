@@ -14,7 +14,7 @@ function git(root, ...args) {
 }
 
 function fixture() {
-  const root = mkdtempSync(resolve(tmpdir(), 'ionic-agent-tools-'));
+  const root = mkdtempSync(resolve(tmpdir(), 'iona-agent-tools-'));
   git(root, 'init', '-b', 'main');
   git(root, 'config', 'user.name', 'Agent Test');
   git(root, 'config', 'user.email', 'agent@example.invalid');

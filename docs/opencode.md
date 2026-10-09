@@ -52,14 +52,14 @@ npm run opencode
 Для другого проекта без переноса harness-файлов:
 
 ```bash
-ionic-llm-harness doctor --repo /absolute/path/to/project
-ionic-llm-harness opencode --repo /absolute/path/to/project
+iona doctor --repo /absolute/path/to/project
+iona opencode --repo /absolute/path/to/project
 ```
 
 Для автоматического теста или CI задайте общий предел сеанса; интерактивный запуск по умолчанию не ограничен:
 
 ```bash
-ionic-llm-harness opencode --repo /absolute/path/to/project --timeout-seconds 900 run "Проверь проект"
+iona opencode --repo /absolute/path/to/project --timeout-seconds 900 run "Проверь проект"
 ```
 
 Предел охватывает весь процесс OpenCode, а не отдельный model request. При зависшей генерации launcher завершится с кодом `124`; незавершённый run затем нужно проверить через `status` и удалить через `discard`.
@@ -82,7 +82,7 @@ Enforced policy использует deny-by-default:
     "question": "allow",
     "todowrite": "allow",
     "doom_loop": "ask",
-    "ionic_harness_*": "allow"
+    "iona_*": "allow"
   }
 }
 ```
@@ -123,7 +123,7 @@ npm run harness:test
 
 ### Модель долго не вызывает первый tool
 
-Для bounded-прогона используйте `--timeout-seconds`. Harness не является skill: корректный первый repository tool — `ionic_harness_begin`; сообщение `Skill "ionic-harness" not found` означает ошибочный выбор инструмента моделью. Обновлённый system prompt явно запрещает такой вызов, но при его повторении запуск следует считать неуспешным, а не ждать бесконечно.
+Для bounded-прогона используйте `--timeout-seconds`. Harness не является skill: корректный первый repository tool — `iona_begin`; сообщение `Skill "ionic-harness" not found` означает ошибочный выбор инструмента моделью. Обновлённый system prompt явно запрещает такой вызов, но при его повторении запуск следует считать неуспешным, а не ждать бесконечно.
 
 ### MCP server не запускается
 
@@ -131,11 +131,11 @@ npm run harness:test
 
 ### Checks не запускаются
 
-Соберите base runner командой `npm run agent:docker:build` в общей установке harness, запустите Docker daemon и проверьте наличие `package-lock.json`. Для диагностики project-specific image выполните `ionic-llm-harness prepare /path/to/project`. Сеть используется только во время контролируемой сборки dependency image; исполняемые checks сети не получают.
+Соберите base runner командой `npm run agent:docker:build` в общей установке harness, запустите Docker daemon и проверьте наличие `package-lock.json`. Для диагностики project-specific image выполните `iona prepare /path/to/project`. Сеть используется только во время контролируемой сборки dependency image; исполняемые checks сети не получают.
 
 ### Protected patch остановился
 
-Это ожидаемое состояние. Используйте repository ID и approval ID из результата для локальной команды `ionic-llm-harness approve <repository-id> <approval-id>`, затем попросите OpenCode повторить идентичный patch.
+Это ожидаемое состояние. Используйте repository ID и approval ID из результата для локальной команды `iona approve <repository-id> <approval-id>`, затем попросите OpenCode повторить идентичный patch.
 
 ---
 

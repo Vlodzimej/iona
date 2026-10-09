@@ -113,7 +113,7 @@ Harness решает четыре задачи:
 
 ### 5. OpenCode и внешний MCP harness
 
-Для другого репозитория OpenCode заменяет встроенный model/tool loop и становится единственным reasoning agent. Он запускается из нейтрального внешнего каталога: встроенные read/edit/bash tools запрещены, а целевой project tree доступен только через `ionic_harness_*`. MCP server переиспользует те же path policy и Executor, но хранит repository registry, worktrees, runs и approvals вне подключённого проекта. Подробный lifecycle: [внешние проекты и OpenCode](harness/external-projects-and-opencode.md).
+Для другого репозитория OpenCode заменяет встроенный model/tool loop и становится единственным reasoning agent. Он запускается из нейтрального внешнего каталога: встроенные read/edit/bash tools запрещены, а целевой project tree доступен только через `iona_*`. MCP server переиспользует те же path policy и Executor, но хранит repository registry, worktrees, runs и approvals вне подключённого проекта. Подробный lifecycle: [внешние проекты и OpenCode](harness/external-projects-and-opencode.md).
 
 ## Поток read-only запроса
 

@@ -3,7 +3,7 @@ import { chmodSync, copyFileSync, lstatSync, mkdirSync, readFileSync } from 'nod
 import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
-const dependencyLabel = 'io.ionic-llm-harness.dependencies';
+const dependencyLabel = 'io.iona.dependencies';
 
 function regularFile(path, label) {
   const stats = lstatSync(path);
@@ -30,7 +30,7 @@ export function projectRunnerDescriptor(harnessRoot, projectRoot) {
   const digest = hash.digest('hex');
   return {
     digest,
-    image: 'ionic-llm-project-runner:sha256-' + digest.slice(0, 24),
+    image: 'iona-project-runner:sha256-' + digest.slice(0, 24),
     files,
   };
 }

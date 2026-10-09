@@ -5,8 +5,8 @@ import { z } from 'zod';
 import { harnessRoot, harnessStateRoot, requiredEnvironment } from './lib/paths.mjs';
 import { HarnessSessionManager } from './lib/session.mjs';
 
-const repositoryId = requiredEnvironment('IONIC_HARNESS_REPOSITORY_ID');
-const profileId = process.env.IONIC_HARNESS_PROFILE?.trim() || 'angular-ionic-capacitor';
+const repositoryId = requiredEnvironment('IONA_REPOSITORY_ID');
+const profileId = process.env.IONA_PROFILE?.trim() || 'angular-ionic-capacitor';
 const manager = new HarnessSessionManager({
   harnessRoot,
   stateRoot: harnessStateRoot(),
@@ -16,7 +16,7 @@ const manager = new HarnessSessionManager({
 });
 
 const server = new McpServer({
-  name: 'ionic-llm-harness',
+  name: 'iona',
   version: '1.0.0',
 });
 
@@ -150,4 +150,4 @@ server.registerTool(
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
-console.error('Ionic LLM harness MCP server is ready.');
+console.error('Iona MCP server is ready.');

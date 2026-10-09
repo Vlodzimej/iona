@@ -1,6 +1,6 @@
-# Angular Ionic Capacitor LLM Starter
+# Iona
 
-A clean hybrid-mobile starter with a local-model harness and a controlled coding-agent runtime. The repository intentionally contains no product-specific architecture or business logic.
+A local development harness and reusable Angular, Ionic and Capacitor starter for coding with private models.
 
 ## Documentation
 
@@ -19,7 +19,7 @@ The connected Russian-language documentation portal explains the project from fi
 - [OpenCode setup](docs/opencode.md)
 - [Build your own harness](docs/build-your-own-harness.md)
 - [Glossary](docs/glossary.md)
-- [Overview presentation](docs/presentation/ionic-llm-harness-overview.pptx)
+- [Overview presentation](docs/presentation/iona-overview.pptx)
 
 ## Stack
 
@@ -177,27 +177,27 @@ state file is copied into the target repository:
 ```bash
 npm link
 npm run agent:docker:build
-ionic-llm-harness doctor --repo /absolute/path/to/another-project
-ionic-llm-harness prepare /absolute/path/to/another-project
-ionic-llm-harness opencode --repo /absolute/path/to/another-project
+iona doctor --repo /absolute/path/to/another-project
+iona prepare /absolute/path/to/another-project
+iona opencode --repo /absolute/path/to/another-project
 ```
 
 The launcher registers the canonical Git repository, starts OpenCode from a
 neutral state directory, injects a higher-precedence configuration that denies
 its built-in file and shell tools, and exposes only the local
-`ionic_harness_*` MCP tools. OpenCode still uses the configured `gpt-oss-20b`
+`iona_*` MCP tools. OpenCode still uses the configured `gpt-oss-20b`
 and global `~/.agents/skills`, but all repository reads, patches, and checks go
 through the harness policy.
 
 Runs, exact approvals, logs, and detached Git worktrees live under
-`~/.local/share/ionic-llm-harness` by default. A successfully validated patch
+`~/.local/share/iona` by default. A successfully validated patch
 is sealed but not copied to the primary checkout. Review and apply it with the
 local human-only control command printed by the run:
 
 ```bash
-ionic-llm-harness status <repository-id> <run-id> --include-patch
-ionic-llm-harness approve <repository-id> <approval-id>
-ionic-llm-harness apply <repository-id> <run-id>
+iona status <repository-id> <run-id> --include-patch
+iona approve <repository-id> <approval-id>
+iona apply <repository-id> <run-id>
 ```
 
 See [External projects and OpenCode](docs/harness/external-projects-and-opencode.md)
@@ -222,3 +222,7 @@ AGENTS.md             Rules for coding agents and local models
 ```
 
 Use `ai/ROADMAP.md` for the staged plan covering retrieval quality, evaluations, coding worktrees, possible fine-tuning, and remote serving.
+
+## VS Code extension
+
+The optional [Iona extension](extensions/vscode/README.md) provides chat and isolated coding tasks with Ollama, LM Studio, NVIDIA PAIR, or another OpenAI-compatible server.

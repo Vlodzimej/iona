@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { harnessStateRoot, requiredEnvironment } from './lib/paths.mjs';
 import { VisualSessionManager } from './lib/visual-session.mjs';
 
-const repositoryId = requiredEnvironment('IONIC_HARNESS_REPOSITORY_ID');
+const repositoryId = requiredEnvironment('IONA_REPOSITORY_ID');
 const manager = new VisualSessionManager({ stateRoot: harnessStateRoot(), repositoryId });
 const server = new McpServer({ name: 'ionic-visual', version: '1.0.0' });
 

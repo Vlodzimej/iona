@@ -4,7 +4,7 @@
 
 ## Что уже поддерживается
 
-Visual QA — отдельный opt-in слой. Обычный `ionic_harness` не получает browser, ADB, Simulator или Appium capabilities. Флаг `--visual` подключает только фиксированные операции наблюдения.
+Visual QA — отдельный opt-in слой. Обычный `iona` не получает browser, ADB, Simulator или Appium capabilities. Флаг `--visual` подключает только фиксированные операции наблюдения.
 
 | Target                               | DOM и размеры | Screenshot             | Сверка с PNG | Как подключается                                     |
 | ------------------------------------ | ------------- | ---------------------- | ------------ | ---------------------------------------------------- |
@@ -27,14 +27,14 @@ npx playwright install chromium
 Проверьте общую установку и посмотрите доступные human-registered targets:
 
 ```bash
-ionic-llm-harness doctor --repo /absolute/path/to/project
-ionic-llm-harness visual-list /absolute/path/to/project
+iona doctor --repo /absolute/path/to/project
+iona visual-list /absolute/path/to/project
 ```
 
 Для сверки зарегистрируйте PNG. Harness проверяет размер, декодирует изображение, удаляет необязательную metadata и сохраняет immutable copy:
 
 ```bash
-ionic-llm-harness visual-baseline /absolute/path/to/project /absolute/path/to/design.png \
+iona visual-baseline /absolute/path/to/project /absolute/path/to/design.png \
   --name home
 ```
 
@@ -46,14 +46,14 @@ ionic-llm-harness visual-baseline /absolute/path/to/project /absolute/path/to/de
 
 ```bash
 npm start
-ionic-llm-harness visual-target /absolute/path/to/project \
+iona visual-target /absolute/path/to/project \
   http://127.0.0.1:4200 --name local-web
 ```
 
 Затем запустите OpenCode:
 
 ```bash
-ionic-llm-harness opencode --repo /absolute/path/to/project --visual run \
+iona opencode --repo /absolute/path/to/project --visual run \
   "Проверь touch targets, overflow и accessible names; сравни экран home с baseline home"
 ```
 
@@ -71,7 +71,7 @@ ionic-llm-harness opencode --repo /absolute/path/to/project --visual run \
 Зарегистрируйте target. Эти значения сохраняются с правами `0600`, а модель видит только opaque target ID:
 
 ```bash
-ionic-llm-harness visual-android /absolute/path/to/project \
+iona visual-android /absolute/path/to/project \
   --serial emulator-5554 \
   --application-id com.example.app \
   --name android-debug
@@ -102,7 +102,7 @@ xcrun simctl bootstatus <UDID> -b
 Зарегистрируйте его:
 
 ```bash
-ionic-llm-harness visual-ios-sim /absolute/path/to/project \
+iona visual-ios-sim /absolute/path/to/project \
   --udid <UDID> \
   --bundle-id com.example.app \
   --name ios-simulator
@@ -117,7 +117,7 @@ ionic-llm-harness visual-ios-sim /absolute/path/to/project \
 Сначала человек настраивает trust/signing, запускает WebDriverAgent/Appium, создаёт сессию и переключает её в нужный `WEBVIEW_*` context. Appium должен слушать loopback; harness не создаёт сессии, не переключает context и не управляет device lifecycle.
 
 ```bash
-ionic-llm-harness visual-appium /absolute/path/to/project \
+iona visual-appium /absolute/path/to/project \
   --url http://127.0.0.1:4723 \
   --session-id <EXISTING_SESSION_ID> \
   --platform ios \
@@ -145,7 +145,7 @@ ionic-llm-harness visual-appium /absolute/path/to/project \
 После run найдите artifacts:
 
 ```bash
-ionic-llm-harness visual-status /absolute/path/to/project <VISUAL_RUN_ID>
+iona visual-status /absolute/path/to/project <VISUAL_RUN_ID>
 open <artifactRoot>/report.html
 ```
 

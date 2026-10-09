@@ -29,8 +29,8 @@ test('visual MCP has a separate observation-only tool surface', async (context) 
     cwd: harnessRoot,
     env: {
       PATH: process.env.PATH,
-      IONIC_HARNESS_REPOSITORY_ID: repository.id,
-      IONIC_HARNESS_STATE_ROOT: stateRoot,
+      IONA_REPOSITORY_ID: repository.id,
+      IONA_STATE_ROOT: stateRoot,
     },
     stderr: 'pipe',
   });

@@ -30,9 +30,9 @@ test('stdio MCP server exposes only the controlled repository tool surface', asy
     cwd: harnessRoot,
     env: {
       PATH: process.env.PATH,
-      IONIC_HARNESS_REPOSITORY_ID: repository.id,
-      IONIC_HARNESS_PROFILE: 'angular-ionic-capacitor',
-      IONIC_HARNESS_STATE_ROOT: stateRoot,
+      IONA_REPOSITORY_ID: repository.id,
+      IONA_PROFILE: 'angular-ionic-capacitor',
+      IONA_STATE_ROOT: stateRoot,
     },
     stderr: 'pipe',
   });

@@ -24,7 +24,7 @@
 
 ### Можно ли использовать harness в уже существующем проекте без копирования `ai/` и `scripts/`?
 
-Да. Один раз выполните `npm link` в общей установке, затем запускайте `ionic-llm-harness ...` из любого Git-проекта. Prompt, policy, MCP, Dockerfile, state и worktrees остаются снаружи.
+Да. Один раз выполните `npm link` в общей установке, затем запускайте `iona ...` из любого Git-проекта. Prompt, policy, MCP, Dockerfile, state и worktrees остаются снаружи.
 
 ### Почему `doctor` требует чистый Git checkout?
 
@@ -46,7 +46,7 @@ Project-specific Docker runner устанавливает ровно зафик�
 
 Нет. OpenCode built-in file/shell tools запрещены enforced configuration. Docker Executor принимает только versioned command arrays из profile; текст shell из ответа модели не исполняется.
 
-### Что делать, если OpenCode долго не вызывает `ionic_harness_begin`?
+### Что делать, если OpenCode долго не вызывает `iona_begin`?
 
 Для тестовых и CI-запусков добавьте `--timeout-seconds 900`. Сообщение о недоступном skill `ionic-harness` означает ошибку выбора tool: harness — это MCP surface, а не skill. Такой прогон не считается успешным. Если `begin` уже вернул run ID, проверьте его через `status` и удалите через `discard`; если до `begin` дело не дошло, run ещё не существует. Затем освободите очередь LM Studio и повторите запуск.
 
@@ -56,7 +56,7 @@ Launcher сам проверяет postcondition команды `run`: долж�
 
 ### Где модель изменяет код?
 
-Только во внешнем detached Git worktree. Primary checkout не меняется до human-only команды `ionic-llm-harness apply`.
+Только во внешнем detached Git worktree. Primary checkout не меняется до human-only команды `iona apply`.
 
 ### Что такое protected approval?
 
@@ -106,13 +106,13 @@ DOM measurement объясняет структуру: размеры, overflow,
 
 ### Где находится HTML Visual QA report?
 
-Выполните `ionic-llm-harness visual-status <project> <run-id>`. Команда покажет внешний `artifactRoot`; внутри находится `report.html`. В target repository отчёт не добавляется.
+Выполните `iona visual-status <project> <run-id>`. Команда покажет внешний `artifactRoot`; внутри находится `report.html`. В target repository отчёт не добавляется.
 
 ## Тестирование и интерпретация результатов
 
 ### Какие проверки запускать перед использованием?
 
-Минимум: `ionic-llm-harness doctor`, `npm run ai:smoke`, `npm run harness:test`. Для browser Visual QA добавьте `npm run harness:visual:test`; для общей установки — `npm run verify`.
+Минимум: `iona doctor`, `npm run ai:smoke`, `npm run harness:test`. Для browser Visual QA добавьте `npm run harness:visual:test`; для общей установки — `npm run verify`.
 
 ### Почему model eval может вернуть ненулевой exit code, хотя HTML создан?
 

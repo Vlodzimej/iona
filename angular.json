@@ -9,7 +9,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "ionic-llm-boilerplate": {
+    "iona": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -67,10 +67,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "ionic-llm-boilerplate:build:production"
+              "buildTarget": "iona:build:production"
             },
             "development": {
-              "buildTarget": "ionic-llm-boilerplate:build:development"
+              "buildTarget": "iona:build:development"
             }
           },
           "defaultConfiguration": "development"

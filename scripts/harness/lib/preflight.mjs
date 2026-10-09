@@ -215,7 +215,7 @@ export function inspectHarnessPreflight({
         separated ? 'ok' : 'error',
         'External state root',
         separated ? resolvedStateRoot + ' (outside target)' : 'overlaps the target repository',
-        separated ? undefined : 'Choose an IONIC_HARNESS_STATE_ROOT outside the target repository.',
+        separated ? undefined : 'Choose an IONA_STATE_ROOT outside the target repository.',
       ),
     );
   }

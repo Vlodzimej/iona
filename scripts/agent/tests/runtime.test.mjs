@@ -14,7 +14,7 @@ function git(root, ...args) {
 }
 
 function copyFixture() {
-  const parent = mkdtempSync(resolve(tmpdir(), 'ionic-agent-runtime-'));
+  const parent = mkdtempSync(resolve(tmpdir(), 'iona-agent-runtime-'));
   const root = resolve(parent, 'repository');
   cpSync(repositoryRoot, root, {
     recursive: true,

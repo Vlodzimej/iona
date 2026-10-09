@@ -6,7 +6,7 @@ import test from 'node:test';
 import { approvalMatches, createApproval, decideApproval, loadApproval } from '../lib/approval.mjs';
 
 test('approval is persisted securely and authorizes only the exact capability arguments', (context) => {
-  const root = mkdtempSync(resolve(tmpdir(), 'ionic-agent-approval-'));
+  const root = mkdtempSync(resolve(tmpdir(), 'iona-agent-approval-'));
   context.after(() => rmSync(root, { recursive: true, force: true }));
   const request = {
     runId: 'run-1',

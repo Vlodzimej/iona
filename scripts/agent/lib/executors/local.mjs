@@ -69,7 +69,7 @@ export function macSandboxSupported() {
   }
   const probe = spawnSync(
     '/usr/bin/sandbox-exec',
-    ['-p', sandboxProfile(resolve(tmpdir(), 'ionic-llm-agent-sandbox-probe')), '/usr/bin/true'],
+    ['-p', sandboxProfile(resolve(tmpdir(), 'iona-agent-sandbox-probe')), '/usr/bin/true'],
     { encoding: 'utf8' },
   );
   sandboxSupport = probe.status === 0;

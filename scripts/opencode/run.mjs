@@ -32,7 +32,7 @@ try {
 
 const stateRoot = harnessStateRoot({
   ...process.env,
-  IONIC_HARNESS_STATE_ROOT: parsed.stateRoot || process.env.IONIC_HARNESS_STATE_ROOT,
+  IONA_STATE_ROOT: parsed.stateRoot || process.env.IONA_STATE_ROOT,
 });
 let repository;
 try {
@@ -57,9 +57,9 @@ const result = spawnSync(executable, parsed.forwarded, {
   cwd: controllerRoot,
   env: {
     ...process.env,
-    IONIC_HARNESS_REPOSITORY_ID: repository.id,
-    IONIC_HARNESS_PROFILE: parsed.profile,
-    IONIC_HARNESS_STATE_ROOT: stateRoot,
+    IONA_REPOSITORY_ID: repository.id,
+    IONA_PROFILE: parsed.profile,
+    IONA_STATE_ROOT: stateRoot,
     OPENCODE_CONFIG_CONTENT: JSON.stringify(enforcedConfig),
   },
   stdio: 'inherit',

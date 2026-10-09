@@ -1,0 +1,163 @@
+{
+  "name": "iona",
+  "displayName": "Iona",
+  "description": "Local coding agent and development harness for Ionic and Capacitor applications.",
+  "version": "0.2.2",
+  "publisher": "iona",
+  "license": "UNLICENSED",
+  "engines": {
+    "vscode": "^1.141.0"
+  },
+  "categories": [
+    "AI",
+    "Other"
+  ],
+  "extensionKind": [
+    "workspace"
+  ],
+  "main": "./dist/extension.js",
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false
+    },
+    "virtualWorkspaces": {
+      "supported": false
+    }
+  },
+  "scripts": {
+    "build": "tsc -p . && node build.mjs",
+    "test": "node --test ../../scripts/vscode/tests/*.test.mjs",
+    "vscode:prepublish": "npm run build",
+    "package": "vsce package --no-dependencies"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/vscode": "^1.100.0",
+    "@vscode/vsce": "^3.0.0",
+    "typescript": "~6.0.2"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "iona.open",
+        "title": "Iona: Open"
+      },
+      {
+        "command": "iona.settings",
+        "title": "Iona: Connection Settings"
+      },
+      {
+        "command": "iona.apiKey",
+        "title": "Iona: Set or Clear API Key"
+      }
+    ],
+    "viewsContainers": {
+      "secondarySidebar": [
+        {
+          "id": "ionaRight",
+          "title": "Iona",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "ionaRight": [
+        {
+          "type": "webview",
+          "id": "iona.chat",
+          "name": "Iona"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Iona",
+      "properties": {
+        "iona.provider": {
+          "type": "string",
+          "default": "ollama",
+          "scope": "application",
+          "description": "Inference provider.",
+          "enum": [
+            "ollama",
+            "lmstudio",
+            "pair",
+            "openai-compatible"
+          ]
+        },
+        "iona.pairEngine": {
+          "type": "string",
+          "default": "ollama",
+          "scope": "application",
+          "description": "Engine behind the local NVIDIA PAIR proxy.",
+          "enum": [
+            "ollama",
+            "lmstudio",
+            "llama.cpp"
+          ]
+        },
+        "iona.baseUrl": {
+          "type": "string",
+          "default": "",
+          "scope": "application",
+          "description": "API base URL including /v1. Empty uses the provider default. For PAIR copy its local Endpoints URL."
+        },
+        "iona.model": {
+          "type": "string",
+          "default": "",
+          "scope": "application",
+          "description": "Exact model ID. Use Check connection in the panel to select a model."
+        },
+        "iona.nodePath": {
+          "type": "string",
+          "default": "node",
+          "scope": "application",
+          "description": "Node executable on the extension host (>=24.15). Use an absolute path if VS Code does not inherit your shell PATH."
+        },
+        "iona.maximumTokens": {
+          "type": "integer",
+          "default": 4096,
+          "scope": "application",
+          "description": "",
+          "minimum": 1,
+          "maximum": 131072
+        },
+        "iona.temperature": {
+          "type": "number",
+          "default": 0.1,
+          "scope": "application",
+          "description": "",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "iona.timeoutMs": {
+          "type": "integer",
+          "default": 120000,
+          "scope": "application",
+          "description": "",
+          "minimum": 1000,
+          "maximum": 1800000
+        },
+        "iona.reasoningEffort": {
+          "type": "string",
+          "default": "",
+          "scope": "application",
+          "description": "Optional; omitted by default for engine compatibility. Hidden reasoning is never shown or stored.",
+          "enum": [
+            "",
+            "low",
+            "medium",
+            "high"
+          ]
+        }
+      }
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Vlodzimej/iona.git",
+    "directory": "extensions/vscode"
+  },
+  "dependencies": {
+    "markdown-it": "^15.0.2"
+  }
+}

@@ -41,11 +41,21 @@ export function createAgentWorktree(projectRoot, runId = createRunId(), options 
   const agentRoot = options.agentRoot ? resolve(options.agentRoot) : resolve(projectRoot, '.agent');
   const worktreeRoot = resolve(agentRoot, 'worktrees', runId);
   const runRoot = resolve(agentRoot, 'runs', runId);
+  const disabledHooksRoot = resolve(agentRoot, 'disabled-hooks');
   mkdirSync(resolve(agentRoot, 'worktrees'), { recursive: true });
   mkdirSync(runRoot, { recursive: true, mode: 0o700 });
-  git(projectRoot, ['worktree', 'add', '--detach', worktreeRoot, 'HEAD']);
+  mkdirSync(disabledHooksRoot, { recursive: true, mode: 0o700 });
 
   try {
+    git(projectRoot, [
+      '-c',
+      'core.hooksPath=' + disabledHooksRoot,
+      'worktree',
+      'add',
+      '--detach',
+      worktreeRoot,
+      'HEAD',
+    ]);
     const dependencies = resolve(projectRoot, 'node_modules');
     if (existsSync(dependencies) && options.linkDependencies !== false) {
       symlinkSync(dependencies, resolve(worktreeRoot, 'node_modules'), 'dir');

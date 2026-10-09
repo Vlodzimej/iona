@@ -22,7 +22,7 @@ function manager(stateRoot, repositoryId, profileId) {
 
 const stateRoot = harnessStateRoot({
   ...process.env,
-  IONIC_HARNESS_STATE_ROOT: option('--state-root') || process.env.IONIC_HARNESS_STATE_ROOT,
+  IONA_STATE_ROOT: option('--state-root') || process.env.IONA_STATE_ROOT,
 });
 const profileOption = option('--profile') || 'angular-ionic-capacitor';
 const positional = process.argv.slice(2).filter((value, index, values) => {

@@ -54,3 +54,8 @@ Thumbs.db
 /ai/runs
 /ai/datasets/private
 /ai/models
+
+# VS Code extension outputs
+/extensions/vscode/dist
+/extensions/vscode/node_modules
+/extensions/vscode/*.vsix

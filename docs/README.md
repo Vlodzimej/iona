@@ -1,4 +1,4 @@
-# Документация Ionic LLM Boilerplate
+# Документация Iona
 
 Это точка входа в документацию универсального стартового репозитория для разработки гибридных мобильных приложений при помощи локальной LLM. Основной предмет документации — **harness**, то есть управляющая программная система вокруг модели: она подбирает знания, формирует запрос, ограничивает инструменты, изолирует изменения и проверяет результат.
 
@@ -28,7 +28,7 @@ flowchart LR
 | Разработчик harness              | [Что такое harness](harness/README.md)              | [извлечение контекста](harness/context-retrieval.md), [протокол модели](harness/model-protocol.md), [оценка качества](harness/evaluations.md) |
 | Инженер платформы или DevOps     | [Архитектура](architecture.md)                      | [безопасность](security.md), [deployment и hardening](deployment-and-hardening.md)                                                            |
 | Автор собственной агентной среды | [Инструкция по созданию](build-your-own-harness.md) | [agent runtime](agent/README.md), [политика инструментов](agent/tools-and-policy.md)                                                          |
-| Руководитель или новый участник  | [Обзор проекта](project-overview.md)                | [презентация](presentation/ionic-llm-harness-overview.pptx), [тезаурус](glossary.md)                                                          |
+| Руководитель или новый участник  | [Обзор проекта](project-overview.md)                | [презентация](presentation/iona-overview.pptx), [тезаурус](glossary.md)                                                                       |
 
 ## Карта материалов
 
@@ -57,7 +57,7 @@ flowchart LR
 - [Deployment-тестирование и hardening](deployment-and-hardening.md) — безопасное удалённое размещение и тесты контура.
 - [Как создать такой harness самостоятельно](build-your-own-harness.md) — подробное руководство от пустого репозитория до управляемого агента.
 - [Тезаурус](glossary.md) — определения терминов простым языком.
-- [Презентация](presentation/ionic-llm-harness-overview.pptx) — краткое визуальное введение в основные функции.
+- [Презентация](presentation/iona-overview.pptx) — краткое визуальное введение в основные функции.
 
 ## Что является источником истины
 

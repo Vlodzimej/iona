@@ -1,9 +1,9 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'dev.example.ionicllmboilerplate',
-  appName: 'Ionic LLM Boilerplate',
-  webDir: 'dist/ionic-llm-boilerplate/browser',
+  appId: 'dev.example.iona',
+  appName: 'Iona',
+  webDir: 'dist/iona/browser',
 };
 
 export default config;

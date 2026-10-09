@@ -1,7 +1,7 @@
-FROM ionic-llm-agent-runner:node-26
+FROM iona-agent-runner:node-26
 
 ARG HARNESS_DEPENDENCY_DIGEST
-LABEL io.ionic-llm-harness.dependencies=$HARNESS_DEPENDENCY_DIGEST
+LABEL io.iona.dependencies=$HARNESS_DEPENDENCY_DIGEST
 
 WORKDIR /opt/agent
 COPY package.json package-lock.json ./

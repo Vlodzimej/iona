@@ -103,7 +103,7 @@ export function createAgentApi(options) {
     try {
       const url = new URL(request.url || '/', 'http://agent.local');
       if (request.method === 'GET' && url.pathname === '/health') {
-        json(response, 200, { ok: true, service: 'ionic-llm-agent-api' });
+        json(response, 200, { ok: true, service: 'iona-agent-api' });
         return;
       }
       if (!authorized(request, token)) {

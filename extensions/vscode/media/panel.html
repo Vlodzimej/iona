@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src {{ csp }}; script-src 'nonce-{{ nonce }}';"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="{{ style }}" />
+    <title>Iona</title>
+  </head>
+  <body>
+    <div class="panel">
+      <div class="topbar">
+        <span class="topbar__title">Iona</span>
+        <div class="topbar__actions">
+          <button class="icon-button" data-action="clear" title="New chat">＋</button>
+          <button class="icon-button" id="settings-toggle" title="Connection and tools">⚙</button>
+        </div>
+      </div>
+      <div class="tools" id="tools" hidden>
+        <button data-action="settings">Connection settings</button>
+        <button data-action="models">Check connection / select model</button>
+        <button data-action="key">API key</button>
+        <button data-action="prepare">Prepare Docker runner</button>
+      </div>
+      <div class="conversation" id="conversation">
+        <div class="empty" id="empty">
+          <div class="empty__mark">❯_</div>
+          <div class="empty__title">What are we building?</div>
+          <div class="empty__description">
+            Ask about your code or start a task.<br />Connect a local model to get started.
+          </div>
+          <button class="empty__connect" data-action="models">Choose a model ↗</button>
+        </div>
+        <div id="messages"></div>
+      </div>
+      <div class="run-card" id="run-card" hidden>
+        <div class="run-card__heading">
+          <span id="run">Isolated task</span
+          ><button class="icon-button" id="run-toggle" title="Task actions">···</button>
+        </div>
+        <div class="run-actions">
+          <button data-action="diff">Review diff</button>
+          <button data-action="continue">Continue</button>
+        </div>
+        <div class="run-options" id="run-options" hidden>
+          <button data-action="status">Refresh status</button>
+          <button data-action="approve">Approve protected patch</button>
+          <button data-action="reject">Reject patch</button>
+          <button data-action="apply">Apply validated changes</button>
+          <button data-action="discard">Discard run</button>
+        </div>
+      </div>
+      <div class="composer-area">
+        <div id="status" class="status" hidden></div>
+        <div class="composer">
+          <textarea
+            id="task"
+            rows="3"
+            maxlength="24000"
+            title="Message or coding task"
+            placeholder="Ask anything, or describe a change…"
+          ></textarea>
+          <div class="composer__bottom">
+            <select id="mode" title="Conversation mode">
+              <option value="chat">Chat</option>
+              <option value="start">Agent</option>
+            </select>
+            <button class="model-button" id="model" data-action="models" title="Select model">
+              Select model
+            </button>
+            <button class="send-button" id="send" title="Send message">↑</button>
+            <button class="send-button" data-action="cancel" title="Cancel model request" hidden>
+              ■
+            </button>
+          </div>
+        </div>
+        <div class="context-line">
+          <label class="selection"
+            ><input type="checkbox" id="include-selection" />Selected code</label
+          >
+          <span id="provider">Ollama</span>
+        </div>
+      </div>
+    </div>
+    <script nonce="{{ nonce }}" src="{{ markdown }}"></script>
+    <script nonce="{{ nonce }}" src="{{ script }}"></script>
+  </body>
+</html>

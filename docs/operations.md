@@ -16,39 +16,39 @@ flowchart LR
 
 ## Справочник команд
 
-| Команда                                | Назначение                             |                  Обращается к модели |                   Меняет source files |
-| -------------------------------------- | -------------------------------------- | -----------------------------------: | ------------------------------------: |
-| `npm start`                            | Angular dev server                     |                                  нет |                                   нет |
-| `npm run build`                        | Production Angular build               |                                  нет |                                   нет |
-| `npm test -- --watch=false`            | Unit tests один раз                    |                                  нет |                                   нет |
-| `npm run cap:doctor`                   | Проверка Capacitor                     |                                  нет |                                   нет |
-| `npm run cap:check`                    | Offline-проверка загрузки config       |                                  нет |                                   нет |
-| `npm run docs:check`                   | Проверка внутренних Markdown links     |                                  нет |                                   нет |
-| `npm run ai:doctor`                    | Проверка skills/config/routing         |                                  нет |                                   нет |
-| `npm run ai:test`                      | Frozen schema и retrieval tests        |                                  нет |                                   нет |
-| `npm run ai:context -- --query "..."`  | Показать выбранный context bundle      |                                  нет |    только с `--output` в ignored path |
-| `npm run ai:smoke`                     | Проверка endpoint/model response       |                                   да |                                   нет |
-| `npm run ai:ask -- "..."`              | Read-only консультация                 |                                   да |                                   нет |
-| `npm run ai:eval`                      | Eval модели + standalone HTML report   |                                   да |           только ignored `ai/reports` |
-| `npm run ai:rescore -- ...`            | Пересчитать неизменные model answers   |                                  нет |           только ignored `ai/reports` |
-| `npm run ai:compare -- ...`            | Сравнительный standalone HTML report   |                                  нет |           только ignored `ai/reports` |
-| `npm run agent:doctor`                 | Проверка agent prerequisites/isolation |                                  нет |                                   нет |
-| `npm run agent:docker:build`           | Собрать pinned Docker runner image     | Docker build может скачать base/deps |                                   нет |
-| `npm run agent:test`                   | Tests policy/protocol/tools/runtime    |     mock endpoint в integration test |                    временные fixtures |
-| `npm run agent -- "..."`               | Изменение в isolated worktree          |                                   да |                       только worktree |
-| `npm run agent -- "..." --apply`       | То же + применение успешного patch     |                                   да |                      да, после checks |
-| `npm run agent:status -- <run-id>`     | Показать сохранённое состояние         |                                  нет |                                   нет |
-| `npm run agent:approve -- <id>`        | Одобрить exact protected action        |                                  нет |             только ignored state file |
-| `npm run agent:resume -- <run-id>`     | Продолжить paused run                  |                                   да |                       только worktree |
-| `npm run agent:api`                    | Запустить loopback Agent API           |                                   да |        через Docker isolated worktree |
-| `npm run opencode -- --repo PATH`      | OpenCode через внешний MCP harness     |                                   да |      только внешний isolated worktree |
-| `ionic-llm-harness doctor --repo PATH` | Preflight общего harness и target      |                                  нет |                                   нет |
-| `npm run harness:test`                 | MCP/external-state integration tests   |                                  нет |                    временные fixtures |
-| `npm run harness -- prepare PATH`      | Собрать project runner по lockfile     |          Docker build скачивает deps |                   внешний image cache |
-| `npm run harness -- status REPO RUN`   | Показать состояние внешнего run        |                                  нет |                                   нет |
-| `npm run harness -- approve REPO ID`   | Одобрить exact protected patch         |                                  нет |             только внешний state file |
-| `npm run harness -- apply REPO RUN`    | Применить sealed validated patch       |                                  нет |      да, после повторных guard checks |
-| `npm run verify`                       | Полный repository gate                 |           нет для source-only checks | build artifacts по правилам toolchain |
+| Команда                               | Назначение                             |                  Обращается к модели |                   Меняет source files |
+| ------------------------------------- | -------------------------------------- | -----------------------------------: | ------------------------------------: |
+| `npm start`                           | Angular dev server                     |                                  нет |                                   нет |
+| `npm run build`                       | Production Angular build               |                                  нет |                                   нет |
+| `npm test -- --watch=false`           | Unit tests один раз                    |                                  нет |                                   нет |
+| `npm run cap:doctor`                  | Проверка Capacitor                     |                                  нет |                                   нет |
+| `npm run cap:check`                   | Offline-проверка загрузки config       |                                  нет |                                   нет |
+| `npm run docs:check`                  | Проверка внутренних Markdown links     |                                  нет |                                   нет |
+| `npm run ai:doctor`                   | Проверка skills/config/routing         |                                  нет |                                   нет |
+| `npm run ai:test`                     | Frozen schema и retrieval tests        |                                  нет |                                   нет |
+| `npm run ai:context -- --query "..."` | Показать выбранный context bundle      |                                  нет |    только с `--output` в ignored path |
+| `npm run ai:smoke`                    | Проверка endpoint/model response       |                                   да |                                   нет |
+| `npm run ai:ask -- "..."`             | Read-only консультация                 |                                   да |                                   нет |
+| `npm run ai:eval`                     | Eval модели + standalone HTML report   |                                   да |           только ignored `ai/reports` |
+| `npm run ai:rescore -- ...`           | Пересчитать неизменные model answers   |                                  нет |           только ignored `ai/reports` |
+| `npm run ai:compare -- ...`           | Сравнительный standalone HTML report   |                                  нет |           только ignored `ai/reports` |
+| `npm run agent:doctor`                | Проверка agent prerequisites/isolation |                                  нет |                                   нет |
+| `npm run agent:docker:build`          | Собрать pinned Docker runner image     | Docker build может скачать base/deps |                                   нет |
+| `npm run agent:test`                  | Tests policy/protocol/tools/runtime    |     mock endpoint в integration test |                    временные fixtures |
+| `npm run agent -- "..."`              | Изменение в isolated worktree          |                                   да |                       только worktree |
+| `npm run agent -- "..." --apply`      | То же + применение успешного patch     |                                   да |                      да, после checks |
+| `npm run agent:status -- <run-id>`    | Показать сохранённое состояние         |                                  нет |                                   нет |
+| `npm run agent:approve -- <id>`       | Одобрить exact protected action        |                                  нет |             только ignored state file |
+| `npm run agent:resume -- <run-id>`    | Продолжить paused run                  |                                   да |                       только worktree |
+| `npm run agent:api`                   | Запустить loopback Agent API           |                                   да |        через Docker isolated worktree |
+| `npm run opencode -- --repo PATH`     | OpenCode через внешний MCP harness     |                                   да |      только внешний isolated worktree |
+| `iona doctor --repo PATH`             | Preflight общего harness и target      |                                  нет |                                   нет |
+| `npm run harness:test`                | MCP/external-state integration tests   |                                  нет |                    временные fixtures |
+| `npm run harness -- prepare PATH`     | Собрать project runner по lockfile     |          Docker build скачивает deps |                   внешний image cache |
+| `npm run harness -- status REPO RUN`  | Показать состояние внешнего run        |                                  нет |                                   нет |
+| `npm run harness -- approve REPO ID`  | Одобрить exact protected patch         |                                  нет |             только внешний state file |
+| `npm run harness -- apply REPO RUN`   | Применить sealed validated patch       |                                  нет |      да, после повторных guard checks |
+| `npm run verify`                      | Полный repository gate                 |           нет для source-only checks | build artifacts по правилам toolchain |
 
 ## Конфигурация модели
 
@@ -90,7 +90,7 @@ jq -c '{timestamp, type, iteration, tool, result}' \
 
 Не прикладывайте полный log к публичной issue: сначала проверьте task text, patches и model output на чувствительные данные.
 
-Для внешнего OpenCode run состояние находится не в проекте, а в `~/.local/share/ionic-llm-harness/repositories/<repository-id>/runs/<run-id>`. Команды review, approval и apply приведены в [руководстве по внешним проектам](harness/external-projects-and-opencode.md).
+Для внешнего OpenCode run состояние находится не в проекте, а в `~/.local/share/iona/repositories/<repository-id>/runs/<run-id>`. Команды review, approval и apply приведены в [руководстве по внешним проектам](harness/external-projects-and-opencode.md).
 
 Если status равен `waiting_approval`, сначала изучите точный patch в worktree и paths в `agent:status`. Решение и продолжение — два отдельных действия; это позволяет отложить resume или выполнить его после перезапуска процесса. Полный lifecycle описан в [разделе об executors и API](agent/executors-approvals-api.md).
 

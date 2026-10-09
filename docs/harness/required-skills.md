@@ -22,7 +22,7 @@ npx skills add Cap-go/capgo-skills -g -y
 
 Команды для двух repository sources устанавливают все найденные в них skills, а не один выбранный каталог. Skills CLI может дополнительно сообщать об агентах, которые не поддерживают global installation; для harness важен успешный target `~/.agents/skills`. Итог проверяется через `doctor`.
 
-Если вывод содержит `PromptScript does not support global skill installation`, но одновременно показывает успешное копирование в `~/.agents/skills`, это относится к другому обнаруженному agent target. Источником истины для этого harness остаётся результат `ionic-llm-harness doctor`. Отдельный upstream manifest с ошибкой YAML может быть пропущен менеджером; harness не добавляет такой файл вручную и не включает его в обязательный footprint до исправления source package.
+Если вывод содержит `PromptScript does not support global skill installation`, но одновременно показывает успешное копирование в `~/.agents/skills`, это относится к другому обнаруженному agent target. Источником истины для этого harness остаётся результат `iona doctor`. Отдельный upstream manifest с ошибкой YAML может быть пропущен менеджером; harness не добавляет такой файл вручную и не включает его в обязательный footprint до исправления source package.
 
 ## Два уровня использования
 
@@ -53,7 +53,7 @@ OpenCode видит остальные global skills и загружает их 
 
 ```bash
 npx skills check
-ionic-llm-harness doctor --repo /absolute/path/to/project --source-only
+iona doctor --repo /absolute/path/to/project --source-only
 ```
 
 `doctor` читает package contract и retrieval allowlist из harness-owned `ai/harness.json`. Для каждого source он проверяет обязательные manifests, затем отдельно проверяет allowlisted manifests и routed references.
@@ -87,7 +87,7 @@ ionic-llm-harness doctor --repo /absolute/path/to/project --source-only
 ```bash
 npx skills check
 npx skills update
-ionic-llm-harness doctor --repo /absolute/path/to/project --source-only
+iona doctor --repo /absolute/path/to/project --source-only
 ```
 
 ---

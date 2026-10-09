@@ -15,7 +15,7 @@ const controlCommands = new Set([
 ]);
 
 function usage() {
-  console.log(`Usage: ionic-llm-harness <command> [arguments]
+  console.log(`Usage: iona <command> [arguments]
 
 Commands:
   doctor --repo PATH             Check the shared harness and target project

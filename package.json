@@ -1,8 +1,8 @@
 {
-  "name": "ionic-llm-boilerplate",
+  "name": "iona",
   "version": "0.0.0",
   "bin": {
-    "ionic-llm-harness": "scripts/harness/cli.mjs"
+    "iona": "scripts/harness/cli.mjs"
   },
   "scripts": {
     "ng": "ng",
@@ -41,8 +41,11 @@
     "agent:approve": "node scripts/agent/control.mjs approve",
     "agent:reject": "node scripts/agent/control.mjs reject",
     "agent:resume": "node scripts/agent/control.mjs resume",
-    "agent:docker:build": "docker build --file docker/agent-runner.Dockerfile --tag ionic-llm-agent-runner:node-26 .",
-    "agent:test": "node --test scripts/agent/tests/*.test.mjs"
+    "agent:docker:build": "docker build --file docker/agent-runner.Dockerfile --tag iona-agent-runner:node-26 .",
+    "agent:test": "node --test scripts/agent/tests/*.test.mjs",
+    "vscode:build": "npm --prefix extensions/vscode run build",
+    "vscode:package": "npm --prefix extensions/vscode run package",
+    "vscode:test": "node --test scripts/vscode/tests/*.test.mjs"
   },
   "private": true,
   "packageManager": "npm@11.17.0",

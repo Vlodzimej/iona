@@ -1,7 +1,7 @@
 # Optional Visual QA tools
 
 The `ionic_visual_*` tools are an explicitly enabled, read-only visual observation layer. They do
-not replace `ionic_harness_*` coding tools and never modify the target repository.
+not replace `iona_*` coding tools and never modify the target repository.
 
 1. List human-registered targets and baselines; never invent their opaque IDs.
 2. Select a target by its reported kind and capabilities. Use a fixed emulated profile for web and

@@ -8,9 +8,9 @@
 
 ```bash
 cd /absolute/path/to/existing-project
-ionic-llm-harness doctor --repo "$PWD"
-ionic-llm-harness prepare "$PWD"
-ionic-llm-harness opencode --repo "$PWD"
+iona doctor --repo "$PWD"
+iona prepare "$PWD"
+iona opencode --repo "$PWD"
 ```
 
 Harness установлен один раз и обслуживает любое количество проектов. Каждый запуск использует отдельный Git worktree и внешний state directory.
@@ -40,13 +40,13 @@ Harness установлен один раз и обслуживает любо�
 Выберите постоянный каталог вне подключаемых проектов. В примерах используется переменная только для удобства текущей terminal session:
 
 ```bash
-export IONIC_HARNESS_HOME=/absolute/path/to/ionic-llm-boilerplate
-cd "$IONIC_HARNESS_HOME"
+export IONA_HOME=/absolute/path/to/iona
+cd "$IONA_HOME"
 nvm use
 npm ci
 ```
 
-Не размещайте общий harness внутри целевого repository. Внешний state root также не должен пересекаться с target root; по умолчанию он находится в `~/.local/share/ionic-llm-harness`.
+Не размещайте общий harness внутри целевого repository. Внешний state root также не должен пересекаться с target root; по умолчанию он находится в `~/.local/share/iona`.
 
 ### Установить skills
 
@@ -63,7 +63,7 @@ Skills устанавливаются в `~/.agents/skills` один раз дл
 Конфигурация соединения хранится только в ignored-файле общего harness:
 
 ```bash
-cd "$IONIC_HARNESS_HOME"
+cd "$IONA_HOME"
 cp .env.local-ai.example .env.local-ai
 ```
 
@@ -80,7 +80,7 @@ LOCAL_AI_API_KEY=
 Проверьте retrieval и соединение:
 
 ```bash
-cd "$IONIC_HARNESS_HOME"
+cd "$IONA_HOME"
 npm run ai:doctor
 npm run ai:smoke
 ```
@@ -88,7 +88,7 @@ npm run ai:smoke
 ### Подготовить Docker Executor
 
 ```bash
-cd "$IONIC_HARNESS_HOME"
+cd "$IONA_HOME"
 npm run agent:docker:build
 npm run agent:doctor
 ```
@@ -98,12 +98,12 @@ Base image содержит доверенный runner. Dependencies каждо
 ### Установить удобную CLI-команду
 
 ```bash
-cd "$IONIC_HARNESS_HOME"
+cd "$IONA_HOME"
 npm link
-ionic-llm-harness --help
+iona --help
 ```
 
-`npm link` создаёт user-scope команду `ionic-llm-harness`, но не копирует package в каждый проект. При использовании `nvm` link относится к активной версии Node; после смены Node его может потребоваться создать заново.
+`npm link` создаёт user-scope команду `iona`, но не копирует package в каждый проект. При использовании `nvm` link относится к активной версии Node; после смены Node его может потребоваться создать заново.
 
 ## 3. Подключение проекта
 
@@ -111,7 +111,7 @@ ionic-llm-harness --help
 
 ```bash
 export TARGET_PROJECT=/absolute/path/to/existing-project
-ionic-llm-harness doctor --repo "$TARGET_PROJECT"
+iona doctor --repo "$TARGET_PROJECT"
 ```
 
 `doctor` проверяет:
@@ -126,7 +126,7 @@ ionic-llm-harness doctor --repo "$TARGET_PROJECT"
 Команда ничего не пишет в target. Для первичной диагностики без Docker можно использовать:
 
 ```bash
-ionic-llm-harness doctor --repo "$TARGET_PROJECT" --source-only
+iona doctor --repo "$TARGET_PROJECT" --source-only
 ```
 
 Перед coding run повторите `doctor` без `--source-only`: Docker Executor является обязательной частью полного workflow.
@@ -134,7 +134,7 @@ ionic-llm-harness doctor --repo "$TARGET_PROJECT" --source-only
 ### Собрать project runner
 
 ```bash
-ionic-llm-harness prepare "$TARGET_PROJECT"
+iona prepare "$TARGET_PROJECT"
 ```
 
 При первом запуске Docker выполняет `npm ci` только по двум package manifests. Исходный код target не включается в build context. Image кэшируется по SHA-256; после изменения `package.json` или `package-lock.json` следующая команда `prepare` создаст новый image.
@@ -144,13 +144,13 @@ ionic-llm-harness prepare "$TARGET_PROJECT"
 Интерактивная session:
 
 ```bash
-ionic-llm-harness opencode --repo "$TARGET_PROJECT"
+iona opencode --repo "$TARGET_PROJECT"
 ```
 
 Одноразовая задача:
 
 ```bash
-ionic-llm-harness opencode \
+iona opencode \
   --repo "$TARGET_PROJECT" \
   run "Добавь feature, тесты и проверь production build"
 ```
@@ -161,9 +161,9 @@ Launcher:
 2. Запускает OpenCode из нейтрального каталога, а не из target tree.
 3. Подключает настроенную локальную модель.
 4. Запрещает встроенные file, edit и shell tools OpenCode.
-5. Оставляет только global skills и `ionic_harness_*` MCP tools.
+5. Оставляет только global skills и `iona_*` MCP tools.
 
-OpenCode автоматически создаёт run через `ionic_harness_begin`, читает target через bounded tools, отправляет validated unified diffs и выполняет allowlisted checks в Docker.
+OpenCode автоматически создаёт run через `iona_begin`, читает target через bounded tools, отправляет validated unified diffs и выполняет allowlisted checks в Docker.
 
 ### Опциональный Visual QA
 
@@ -172,25 +172,25 @@ Visual tools не включены в обычную session. Для измер�
 ```bash
 cd "$HARNESS_HOME"
 npx playwright install chromium
-ionic-llm-harness visual-target "$TARGET_PROJECT" http://127.0.0.1:4200 --name local-app
-ionic-llm-harness visual-baseline "$TARGET_PROJECT" /path/to/design.png --name home
-ionic-llm-harness visual-list "$TARGET_PROJECT"
+iona visual-target "$TARGET_PROJECT" http://127.0.0.1:4200 --name local-app
+iona visual-baseline "$TARGET_PROJECT" /path/to/design.png --name home
+iona visual-list "$TARGET_PROJECT"
 ```
 
 После этого запустите отдельную opt-in session:
 
 ```bash
-ionic-llm-harness opencode --repo "$TARGET_PROJECT" --visual
+iona opencode --repo "$TARGET_PROJECT" --visual
 ```
 
 Флаг добавляет отдельный `ionic_visual_*` MCP namespace. Browser observations, screenshots и HTML reports сохраняются во внешнем state root и не изменяют target tree или lifecycle coding run. Кроме web URL можно human-register Android WebView, iOS Simulator или существующую loopback Appium session:
 
 ```bash
-ionic-llm-harness visual-android "$TARGET_PROJECT" \
+iona visual-android "$TARGET_PROJECT" \
   --serial emulator-5554 --application-id com.example.app --name android-debug
-ionic-llm-harness visual-ios-sim "$TARGET_PROJECT" \
+iona visual-ios-sim "$TARGET_PROJECT" \
   --udid <SIMULATOR_UDID> --bundle-id com.example.app --name ios-sim
-ionic-llm-harness visual-appium "$TARGET_PROJECT" \
+iona visual-appium "$TARGET_PROJECT" \
   --url http://127.0.0.1:4723 --session-id <SESSION_ID> --platform ios --name ios-device
 ```
 
@@ -207,10 +207,10 @@ OpenCode сообщает `repositoryId`, `runId`, status и validation result. 
 Просмотрите diff и одобрите или отклоните запрос вне OpenCode:
 
 ```bash
-ionic-llm-harness status <repository-id> <run-id> --include-patch
-ionic-llm-harness approve <repository-id> <approval-id> --actor <name>
+iona status <repository-id> <run-id> --include-patch
+iona approve <repository-id> <approval-id> --actor <name>
 # или
-ionic-llm-harness reject <repository-id> <approval-id> --actor <name>
+iona reject <repository-id> <approval-id> --actor <name>
 ```
 
 После approval попросите OpenCode повторить идентичный patch. Изменённый patch не сможет использовать старое разрешение.
@@ -220,13 +220,13 @@ ionic-llm-harness reject <repository-id> <approval-id> --actor <name>
 Когда `finish` выполнил полный validation profile и status стал `ready`, ещё раз просмотрите sealed diff:
 
 ```bash
-ionic-llm-harness status <repository-id> <run-id> --include-patch
+iona status <repository-id> <run-id> --include-patch
 ```
 
 Применить его к primary checkout:
 
 ```bash
-ionic-llm-harness apply <repository-id> <run-id>
+iona apply <repository-id> <run-id>
 ```
 
 Перед применением harness проверяет чистоту checkout, исходный `HEAD`, успешную validation evidence и SHA-256 sealed patch. Harness не создаёт commit и не выполняет push: после `apply` разработчик делает обычный review, commit и push средствами целевого проекта.
@@ -234,7 +234,7 @@ ionic-llm-harness apply <repository-id> <run-id>
 Ненужный run удаляется командой:
 
 ```bash
-ionic-llm-harness discard <repository-id> <run-id>
+iona discard <repository-id> <run-id>
 ```
 
 ## 6. Где появляются данные
@@ -243,7 +243,7 @@ ionic-llm-harness discard <repository-id> <run-id>
 | -------------------------------------------------------- | ------------------------------------------------------- | --------------------: |
 | Общая установка harness                                  | Policy, prompts, MCP server, profiles и `.env.local-ai` |                   нет |
 | `~/.agents/skills`                                       | Global skill packages                                   |                   нет |
-| `~/.local/share/ionic-llm-harness`                       | Registry, runs, approvals и detached worktrees          |                   нет |
+| `~/.local/share/iona`                                    | Registry, runs, approvals и detached worktrees          |                   нет |
 | Docker                                                   | Base runner и project dependency images                 |                   нет |
 | `.git/worktrees` целевого repository во время active run | Служебная регистрация внешнего Git worktree             |                   нет |
 | Primary checkout target                                  | Только явно применённый sealed patch                    |                    да |
@@ -255,15 +255,15 @@ Harness не создаёт в target tree `ai/`, `scripts/`, `.agents/`, `openc
 Все операции доступны непосредственно через установленный repository harness:
 
 ```bash
-npm --prefix "$IONIC_HARNESS_HOME" run harness:doctor -- --repo "$TARGET_PROJECT"
-npm --prefix "$IONIC_HARNESS_HOME" run harness -- prepare "$TARGET_PROJECT"
-npm --prefix "$IONIC_HARNESS_HOME" run opencode -- --repo "$TARGET_PROJECT"
+npm --prefix "$IONA_HOME" run harness:doctor -- --repo "$TARGET_PROJECT"
+npm --prefix "$IONA_HOME" run harness -- prepare "$TARGET_PROJECT"
+npm --prefix "$IONA_HOME" run opencode -- --repo "$TARGET_PROJECT"
 ```
 
 Human-only команды также можно выполнить так:
 
 ```bash
-npm --prefix "$IONIC_HARNESS_HOME" run harness -- \
+npm --prefix "$IONA_HOME" run harness -- \
   status <repository-id> <run-id> --include-patch
 ```
 
@@ -274,11 +274,11 @@ npm --prefix "$IONIC_HARNESS_HOME" run harness -- \
 Одна установка может обслуживать несколько repositories:
 
 ```bash
-ionic-llm-harness doctor --repo /projects/application-a
-ionic-llm-harness prepare /projects/application-a
+iona doctor --repo /projects/application-a
+iona prepare /projects/application-a
 
-ionic-llm-harness doctor --repo /projects/application-b
-ionic-llm-harness prepare /projects/application-b
+iona doctor --repo /projects/application-b
+iona prepare /projects/application-b
 ```
 
 Repository ID включает нормализованное имя и hash canonical path. State, worktrees, approvals и dependency images разделены. После перемещения repository в другой каталог запустите `doctor` и `prepare` с новым path: он получит новый identity.
@@ -288,9 +288,9 @@ Repository ID включает нормализованное имя и hash can
 ```bash
 export TARGET_PROJECT=/Users/<user>/Projects/scloud/scom-mobile
 
-ionic-llm-harness doctor --repo "$TARGET_PROJECT"
-ionic-llm-harness prepare "$TARGET_PROJECT"
-ionic-llm-harness opencode \
+iona doctor --repo "$TARGET_PROJECT"
+iona prepare "$TARGET_PROJECT"
+iona opencode \
   --repo "$TARGET_PROJECT" \
   run "Реализуй отдельную feature, добавь тесты и выполни full validation"
 ```
@@ -298,8 +298,8 @@ ionic-llm-harness opencode \
 После `ready`:
 
 ```bash
-ionic-llm-harness status <repository-id> <run-id> --include-patch
-ionic-llm-harness apply <repository-id> <run-id>
+iona status <repository-id> <run-id> --include-patch
+iona apply <repository-id> <run-id>
 git -C "$TARGET_PROJECT" diff --check
 git -C "$TARGET_PROJECT" status --short
 ```
@@ -309,7 +309,7 @@ git -C "$TARGET_PROJECT" status --short
 Обновление выполняется один раз, а не в каждом target:
 
 ```bash
-cd "$IONIC_HARNESS_HOME"
+cd "$IONA_HOME"
 git pull --ff-only
 npm ci
 npm link
@@ -336,16 +336,16 @@ npm run agent:docker:build
 
 ### `LOCAL_AI_BASE_URL is missing` или модель недоступна
 
-Редактируйте только `$IONIC_HARNESS_HOME/.env.local-ai`, затем выполните `npm run ai:smoke` в общей установке. Проверяйте отдельно endpoint и MCP/Docker: это независимые соединения.
+Редактируйте только `$IONA_HOME/.env.local-ai`, затем выполните `npm run ai:smoke` в общей установке. Проверяйте отдельно endpoint и MCP/Docker: это независимые соединения.
 
 ### `Docker Executor` или project runner недоступен
 
 Запустите Docker daemon, затем:
 
 ```bash
-cd "$IONIC_HARNESS_HOME"
+cd "$IONA_HOME"
 npm run agent:docker:build
-ionic-llm-harness prepare "$TARGET_PROJECT"
+iona prepare "$TARGET_PROJECT"
 ```
 
 ### `npm ci` не проходит в project runner
@@ -358,7 +358,7 @@ ionic-llm-harness prepare "$TARGET_PROJECT"
 
 ### Run больше не нужен
 
-Используйте `ionic-llm-harness discard ...`. Не удаляйте external worktree вручную: команда согласованно очищает Git worktree registry и state run.
+Используйте `iona discard ...`. Не удаляйте external worktree вручную: команда согласованно очищает Git worktree registry и state run.
 
 ---
 

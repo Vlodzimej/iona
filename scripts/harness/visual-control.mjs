@@ -18,7 +18,7 @@ function option(name) {
 
 const stateRoot = harnessStateRoot({
   ...process.env,
-  IONIC_HARNESS_STATE_ROOT: option('--state-root') || process.env.IONIC_HARNESS_STATE_ROOT,
+  IONA_STATE_ROOT: option('--state-root') || process.env.IONA_STATE_ROOT,
 });
 const values = process.argv.slice(2).filter((value, index, all) => {
   if (

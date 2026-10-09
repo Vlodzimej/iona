@@ -3,6 +3,14 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Iona extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}/extensions/vscode"],
+      "outFiles": ["${workspaceFolder}/extensions/vscode/dist/**/*.js"],
+      "preLaunchTask": "build-vscode-extension"
+    },
+    {
       "name": "ng serve",
       "type": "chrome",
       "request": "launch",

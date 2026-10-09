@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import test from 'node:test';
@@ -16,7 +16,7 @@ function git(root, ...args) {
 }
 
 function repository() {
-  const root = mkdtempSync(resolve(tmpdir(), 'ionic-agent-worktree-'));
+  const root = mkdtempSync(resolve(tmpdir(), 'iona-agent-worktree-'));
   git(root, 'init', '-b', 'main');
   git(root, 'config', 'user.name', 'Agent Test');
   git(root, 'config', 'user.email', 'agent@example.invalid');
@@ -51,4 +51,21 @@ test('failed worktree setup removes the linked-worktree registration', (context)
   const worktreeRoot = resolve(root, '.agent/worktrees/failed-run');
   assert.equal(existsSync(worktreeRoot), false);
   assert.doesNotMatch(git(root, 'worktree', 'list', '--porcelain'), /failed-run/u);
+});
+
+test('agent worktree creation does not execute repository checkout hooks', (context) => {
+  const root = repository();
+  context.after(() => rmSync(root, { recursive: true, force: true }));
+  const hooksRoot = resolve(root, '.hooks');
+  const hookPath = resolve(hooksRoot, 'post-checkout');
+  mkdirSync(hooksRoot);
+  writeFileSync(hookPath, '#!/bin/sh\ntouch hook-ran\nexit 1\n');
+  chmodSync(hookPath, 0o700);
+  git(root, 'add', '.hooks/post-checkout');
+  git(root, 'commit', '-m', 'add failing checkout hook');
+  git(root, 'config', 'core.hooksPath', '.hooks');
+
+  const run = createAgentWorktree(root, 'hooks-disabled-run');
+  assert.equal(existsSync(resolve(run.worktreeRoot, 'hook-ran')), false);
+  removeAgentWorktree(root, run.worktreeRoot);
 });
