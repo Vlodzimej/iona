@@ -212,8 +212,12 @@ window.addEventListener('message', ({ data }) => {
   }
   if (data.type === 'busy') {
     busy = data.value;
-    if (busy) startActivity();
-    else stopActivity();
+    if (busy) {
+      status.textContent = '';
+      status.hidden = true;
+      status.classList.remove('status--error');
+      startActivity();
+    } else stopActivity();
     refresh();
   }
   if (data.type === 'run') {

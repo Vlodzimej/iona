@@ -62,8 +62,13 @@ test('panel serializes actions, renders content as text and removes rejected pro
   assert.equal(document.getElementById('run-card').hidden, true);
   send({ type: 'run', runId: 'fixture' });
   assert.equal(document.getElementById('run-card').hidden, false);
+  send({ type: 'error', text: 'Previous request failed.' });
+  assert.equal(document.getElementById('status').hidden, false);
   send({ type: 'busy', value: true });
   assert.equal(document.getElementById('send').hidden, true);
+  assert.equal(document.getElementById('status').hidden, true);
+  assert.equal(document.getElementById('status').textContent, '');
+  assert.equal(document.getElementById('status').classList.contains('status--error'), false);
   assert.equal(document.querySelector('[data-action="cancel"]').disabled, false);
   assert.equal(document.getElementById('activity').hidden, false);
   assert.equal(document.getElementById('activity-text').textContent, 'Generating response…');
