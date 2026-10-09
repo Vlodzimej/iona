@@ -127,6 +127,37 @@ test('repository registration rejects overlapping target and state roots', (cont
   );
 });
 
+test('unchanged run finishes without preparing a project runner or running checks', (context) => {
+  const targetRoot = repository();
+  const stateRoot = mkdtempSync(resolve(tmpdir(), 'ionic-harness-state-'));
+  context.after(() => {
+    rmSync(targetRoot, { recursive: true, force: true });
+    rmSync(stateRoot, { recursive: true, force: true });
+  });
+  const entry = registerRepository(stateRoot, targetRoot);
+  const manager = new HarnessSessionManager({
+    harnessRoot,
+    stateRoot,
+    repositoryId: entry.id,
+    profileId: 'angular-ionic-capacitor',
+    profile: loadHarnessProfile(harnessRoot, 'angular-ionic-capacitor'),
+    executor: 'docker',
+    executorFactory: () => {
+      throw new Error('Executor must not be created for an unchanged run.');
+    },
+    runnerPreparer: () => {
+      throw new Error('Runner must not be prepared for an unchanged run.');
+    },
+  });
+
+  const run = manager.begin('Inspect the application.');
+  const finished = manager.finish(run.runId, 'Inspection completed.');
+
+  assert.equal(finished.status, 'ready');
+  assert.equal(finished.validation.ok, true);
+  assert.equal(finished.validation.profile, 'unchanged');
+});
+
 test('project runner identity is pinned to manifests and trusted runner sources', (context) => {
   const targetRoot = repository();
   context.after(() => rmSync(targetRoot, { recursive: true, force: true }));

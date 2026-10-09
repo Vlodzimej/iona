@@ -319,6 +319,29 @@ export class HarnessSessionManager {
     if (state.status !== 'active') {
       throw new Error('Harness run cannot finish in status ' + state.status + '.');
     }
+    const unchangedPatch = worktreePatch(state.worktreeRoot);
+    if (!unchangedPatch) {
+      const unchangedHash = createHash('sha256').update(unchangedPatch).digest('hex');
+      state.status = 'ready';
+      state.summary = String(summary || '')
+        .trim()
+        .slice(0, 4000);
+      state.validation = {
+        ok: true,
+        executor: 'none',
+        profile: 'unchanged',
+        patchHash: unchangedHash,
+        results: [],
+      };
+      state.validatedPatchHash = unchangedHash;
+      saveHarnessRun(this.repositoryRoot, state);
+      appendHarnessEvent(this.repositoryRoot, runId, {
+        type: 'run_ready',
+        profile: 'unchanged',
+        patchHash: unchangedHash,
+      });
+      return publicRun(state);
+    }
     this.ensureProjectRunner(state);
     const context = {
       config: this.configForState(state),
