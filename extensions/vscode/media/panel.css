@@ -322,6 +322,7 @@ select {
 .md-heading {
   font-weight: 600;
   margin: 14px 0 6px;
+  color: var(--vscode-textLink-foreground);
 }
 .md-h1 {
   font-size: 1.4em;
@@ -334,6 +335,7 @@ select {
 }
 .md-strong {
   font-weight: 700;
+  color: var(--vscode-charts-blue, var(--vscode-foreground));
 }
 .md-em {
   font-style: italic;
@@ -379,11 +381,49 @@ select {
   background: var(--vscode-textCodeBlock-background, var(--vscode-input-background));
 }
 .md-code-block {
+  position: relative;
   white-space: pre;
   overflow-x: auto;
-  padding: 10px;
+  padding: 24px 10px 10px;
   border-radius: 6px;
   margin: 8px 0;
+  color: var(--vscode-editor-foreground, var(--vscode-foreground));
+}
+.md-code-block:not([data-language]) {
+  padding-top: 10px;
+}
+.md-code-block[data-language]::before {
+  content: attr(data-language);
+  position: absolute;
+  top: 5px;
+  right: 8px;
+  color: var(--vscode-descriptionForeground);
+  font-family: var(--vscode-font-family);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+.syntax-comment {
+  color: var(--vscode-descriptionForeground);
+  font-style: italic;
+}
+.syntax-keyword,
+.syntax-decorator {
+  color: var(--vscode-charts-purple, #c586c0);
+}
+.syntax-string,
+.syntax-diff-add {
+  color: var(--vscode-charts-green, #6a9955);
+}
+.syntax-number,
+.syntax-attribute {
+  color: var(--vscode-charts-orange, #ce9178);
+}
+.syntax-tag,
+.syntax-diff-meta {
+  color: var(--vscode-charts-blue, #569cd6);
+}
+.syntax-diff-remove {
+  color: var(--vscode-charts-red, #f48771);
 }
 .md-code-inline {
   white-space: pre-wrap;
@@ -413,6 +453,7 @@ select {
 .md-th {
   font-weight: 600;
   background: var(--vscode-input-background);
+  color: var(--vscode-textLink-foreground);
 }
 .md-rule {
   border-top: 1px solid var(--vscode-panel-border);

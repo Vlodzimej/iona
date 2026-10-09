@@ -129,6 +129,23 @@ test('assistant Markdown renders tables, lists and code without executing model 
     null,
   );
 });
+test('fenced code uses safe theme-aware syntax tokens', (context) => {
+  const { document, send } = panel(context);
+  send({
+    type: 'message',
+    role: 'assistant',
+    text: '```ts\nconst title: string = "Iona"; // visible\n```\n\n```diff\n-old\n+new\n```',
+  });
+
+  const blocks = document.querySelectorAll('.md-code-block');
+  assert.equal(blocks[0].dataset.language, 'ts');
+  assert.equal(blocks[0].querySelector('.syntax-keyword').textContent, 'const');
+  assert.equal(blocks[0].querySelector('.syntax-string').textContent, '"Iona"');
+  assert.equal(blocks[0].querySelector('.syntax-comment').textContent, '// visible');
+  assert.equal(blocks[1].querySelector('.syntax-diff-remove').textContent, '-old\n');
+  assert.equal(blocks[1].querySelector('.syntax-diff-add').textContent, '+new\n');
+  assert.equal(document.querySelectorAll('.md-code-block script').length, 0);
+});
 test('incomplete pipe tables render as readable labeled list items', (context) => {
   const { document, send } = panel(context);
   send({

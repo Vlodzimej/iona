@@ -85,6 +85,59 @@ function normalizeMarkdown(text) {
     })
     .join('\n');
 }
+function syntaxClass(token, language) {
+  if (/^(?:\/\/|\/\*|<!--|#(?![\da-f]{3,8}\b))/iu.test(token)) return 'syntax-comment';
+  if (/^["'`]/u.test(token)) return 'syntax-string';
+  if (/^\d/u.test(token)) return 'syntax-number';
+  if (/^@/u.test(token)) return 'syntax-decorator';
+  if (/^<\/?[a-z]/iu.test(token)) return 'syntax-tag';
+  if (/^[a-z_:][\w:.-]*(?=\s*=)/iu.test(token) && ['html', 'xml'].includes(language))
+    return 'syntax-attribute';
+  return 'syntax-keyword';
+}
+function codePattern(language) {
+  if (['html', 'xml'].includes(language))
+    return /<!--[\s\S]*?-->|<\/?[a-z][\w:-]*|[a-z_:][\w:.-]*(?=\s*=)|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\{\{|\}\}/giu;
+  if (['bash', 'shell', 'sh', 'zsh'].includes(language))
+    return /#[^\n]*|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\$\{?[a-z_][\w]*\}?|\b(?:case|do|done|elif|else|esac|export|fi|for|function|if|in|local|return|then|while)\b|\b\d+(?:\.\d+)?\b/giu;
+  if (['css', 'scss', 'sass', 'less'].includes(language))
+    return /\/\*[\s\S]*?\*\/|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|#[\da-f]{3,8}\b|\b\d+(?:\.\d+)?(?:px|rem|em|%|s|ms|vh|vw)?\b|@[a-z-]+/giu;
+  if (language === 'json')
+    return /"(?:\\.|[^"\\])*"|\b(?:true|false|null)\b|-?\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b/giu;
+  return /\/\*[\s\S]*?\*\/|\/\/[^\n]*|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`|@[a-z_$][\w$]*|\b(?:abstract|as|async|await|boolean|break|case|catch|class|const|constructor|continue|declare|default|delete|do|else|enum|export|extends|false|finally|for|from|function|get|if|implements|import|in|infer|instanceof|interface|keyof|let|namespace|never|new|null|number|object|of|override|private|protected|public|readonly|return|set|static|string|super|switch|symbol|this|throw|true|try|type|typeof|undefined|unknown|var|void|while|yield)\b|\b\d+(?:\.\d+)?\b/gu;
+}
+function appendHighlightedCode(target, content, info) {
+  const language = (info || '').trim().split(/\s+/u)[0].toLowerCase();
+  if (language) target.dataset.language = language;
+  if (['diff', 'patch'].includes(language)) {
+    for (const line of content.match(/.*(?:\n|$)/gu) || []) {
+      if (!line) continue;
+      const span = document.createElement('span');
+      span.className = line.startsWith('+')
+        ? 'syntax-diff-add'
+        : line.startsWith('-')
+          ? 'syntax-diff-remove'
+          : line.startsWith('@@') || line.startsWith('diff ')
+            ? 'syntax-diff-meta'
+            : '';
+      span.textContent = line;
+      target.append(span);
+    }
+    return;
+  }
+  const pattern = codePattern(language);
+  let cursor = 0;
+  for (const match of content.matchAll(pattern)) {
+    if (match.index > cursor)
+      target.append(document.createTextNode(content.slice(cursor, match.index)));
+    const span = document.createElement('span');
+    span.className = syntaxClass(match[0], language);
+    span.textContent = match[0];
+    target.append(span);
+    cursor = match.index + match[0].length;
+  }
+  if (cursor < content.length) target.append(document.createTextNode(content.slice(cursor)));
+}
 function renderMarkdown(target, text) {
   const tags = {
     paragraph: 'div',
@@ -138,7 +191,7 @@ function renderMarkdown(target, text) {
       } else if (token.type === 'fence' || token.type === 'code_block') {
         const code = document.createElement('div');
         code.className = 'md-code-block';
-        code.textContent = token.content;
+        appendHighlightedCode(code, token.content, token.info);
         current.append(code);
       } else if (token.type === 'code_inline') {
         const code = document.createElement('span');
