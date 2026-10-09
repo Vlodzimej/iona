@@ -13,7 +13,7 @@ npm ci --prefix extensions/vscode
 npm run vscode:build
 npm run vscode:test
 npm run vscode:package
-code --install-extension extensions/vscode/iona-0.2.4.vsix
+code --install-extension extensions/vscode/iona-0.2.5.vsix
 ```
 
 Alternatively select **Iona extension** in Run and Debug and press

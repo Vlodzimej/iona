@@ -17,6 +17,7 @@ class HarnessView implements vscode.WebviewViewProvider, vscode.Disposable {
   private view: vscode.WebviewView | undefined;
   private readonly bridge: Bridge;
   private busy = false;
+  private cancelRequested = false;
   private history: Message[];
   private run: Run | undefined;
   constructor(private readonly context: vscode.ExtensionContext) {
@@ -174,9 +175,10 @@ class HarnessView implements vscode.WebviewViewProvider, vscode.Disposable {
       this.connectionState();
       if (this.run) {
         try {
-          this.runStatus(await this.bridge.request('status', { ...this.run }));
+          const runStatus = await this.bridge.request('status', { ...this.run });
+          if (!(await this.discardEmptyActiveRun(runStatus))) this.runStatus(runStatus);
         } catch {
-          this.post({ type: 'progress', text: 'The saved isolated task is unavailable.' });
+          await this.clearRun();
         }
       }
       return;
@@ -190,6 +192,7 @@ class HarnessView implements vscode.WebviewViewProvider, vscode.Disposable {
       return;
     }
     if (value.type === 'cancel') {
+      this.cancelRequested = true;
       this.bridge.cancel();
       return;
     }
@@ -199,6 +202,7 @@ class HarnessView implements vscode.WebviewViewProvider, vscode.Disposable {
       return;
     }
     this.busy = true;
+    this.cancelRequested = false;
     this.post({ type: 'busy', value: true });
     try {
       if (value.type === 'prepare') {
@@ -313,11 +317,16 @@ class HarnessView implements vscode.WebviewViewProvider, vscode.Disposable {
         }
       }
     } catch (error) {
-      this.post({
-        type: 'error',
-        text: error instanceof Error ? error.message : 'Operation failed.',
-      });
+      if (this.cancelRequested && (await this.discardEmptyActiveRun())) {
+        this.post({ type: 'progress', text: 'Cancelled. Empty isolated task discarded.' });
+      } else {
+        this.post({
+          type: 'error',
+          text: error instanceof Error ? error.message : 'Operation failed.',
+        });
+      }
     } finally {
+      this.cancelRequested = false;
       this.busy = false;
       this.post({ type: 'busy', value: false });
     }
@@ -351,6 +360,26 @@ class HarnessView implements vscode.WebviewViewProvider, vscode.Disposable {
     this.history = [...this.history, message].slice(-40);
     void this.context.workspaceState.update('iona.history', this.history);
     this.post({ type: 'message', role: message.role, text: message.content });
+  }
+  private async discardEmptyActiveRun(status?: unknown): Promise<boolean> {
+    if (!this.run) return false;
+    const current = status ?? (await this.bridge.request('status', { ...this.run }));
+    if (!isRecord(current) || current.status !== 'active') return false;
+    const diff = await this.bridge.request('diff', { ...this.run });
+    if (
+      !isRecord(diff) ||
+      diff.patch !== '' ||
+      (typeof diff.worktreeStatus === 'string' && diff.worktreeStatus !== '')
+    )
+      return false;
+    await this.bridge.request('discard', { ...this.run });
+    await this.clearRun();
+    return true;
+  }
+  private async clearRun(): Promise<void> {
+    this.run = undefined;
+    await this.context.workspaceState.update('iona.run', undefined);
+    this.post({ type: 'run' });
   }
   dispose(): void {
     this.bridge.dispose();
