@@ -108,6 +108,22 @@ test('agent changes stay isolated until the validated run is explicitly applied'
   );
 });
 
+test('plain final agent response implicitly finishes and validates the run', async (context) => {
+  const { repository, options } = fixture(context);
+  const service = new ExtensionService({
+    ...options,
+    complete: async () => ({
+      choices: [{ finish_reason: 'stop', message: { content: 'Inspection completed.' } }],
+    }),
+  });
+
+  const run = await service.handle('start', { repository, task: 'Inspect', config });
+
+  assert.equal(run.status, 'ready');
+  assert.equal(run.summary, 'Inspection completed.');
+  assert.equal(run.text, 'Inspection completed.');
+});
+
 test('protected approval can be reviewed and resumed after bridge restart; mismatched review is rejected', async (context) => {
   const { repository, options } = fixture(context);
   const protectedPatch = patch(

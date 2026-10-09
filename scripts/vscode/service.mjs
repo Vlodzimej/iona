@@ -246,8 +246,11 @@ export class ExtensionService {
         await this.complete(config, messages, agentToolDefinitions, signal),
       );
       const requests = toolRequests(message);
-      if (!requests.length)
-        return { ...session.status(runId), text: messageText({ choices: [{ message }] }) };
+      if (!requests.length) {
+        const text = messageText({ choices: [{ message }] });
+        const finished = session.finish(runId, text);
+        return { ...finished, text };
+      }
       // One call at a time makes approval and cancellation resumable without orphan tool IDs.
       if (requests.length !== 1) {
         messages.push({ role: 'user', content: 'Request exactly one tool per response.' });
