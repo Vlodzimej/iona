@@ -13,7 +13,7 @@ npm ci --prefix extensions/vscode
 npm run vscode:build
 npm run vscode:test
 npm run vscode:package
-code --install-extension extensions/vscode/iona-0.2.2.vsix
+code --install-extension extensions/vscode/iona-0.2.4.vsix
 ```
 
 Alternatively select **Iona extension** in Run and Debug and press
@@ -47,7 +47,7 @@ is displayed as text; images are not fetched. **Copy** on a completed message co
 its original Markdown through the VS Code clipboard. Streaming messages become
 copyable only after the complete response passes validation.
 
-Chat streams public content; history lives in extension memory until clear/reload.
+Chat streams public content; conversation history is stored in VS Code workspace state until cleared.
 Truncated or incomplete responses are rejected, and provisional text is removed
 on failure. Reasoning fields are ignored. Project files are not automatically
 attached to chat. Enable **Include selected code in chat** to send a bounded

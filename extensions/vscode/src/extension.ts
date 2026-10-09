@@ -17,10 +17,21 @@ class HarnessView implements vscode.WebviewViewProvider, vscode.Disposable {
   private view: vscode.WebviewView | undefined;
   private readonly bridge: Bridge;
   private busy = false;
-  private history: Message[] = [];
+  private history: Message[];
   private run: Run | undefined;
   constructor(private readonly context: vscode.ExtensionContext) {
     this.run = context.workspaceState.get<Run>('iona.run');
+    const storedHistory = context.workspaceState.get<unknown>('iona.history');
+    this.history = Array.isArray(storedHistory)
+      ? storedHistory
+          .filter(
+            (item): item is Message =>
+              isRecord(item) &&
+              (item.role === 'user' || item.role === 'assistant') &&
+              typeof item.content === 'string',
+          )
+          .slice(-40)
+      : [];
     this.bridge = new Bridge(context, (event) => {
       if (!isRecord(event)) return;
       if (
@@ -161,6 +172,13 @@ class HarnessView implements vscode.WebviewViewProvider, vscode.Disposable {
       this.post({ type: 'run', ...this.run });
       this.post({ type: 'busy', value: this.busy });
       this.connectionState();
+      if (this.run) {
+        try {
+          this.runStatus(await this.bridge.request('status', { ...this.run }));
+        } catch {
+          this.post({ type: 'progress', text: 'The saved isolated task is unavailable.' });
+        }
+      }
       return;
     }
     if (value.type === 'settings') {
@@ -202,6 +220,7 @@ class HarnessView implements vscode.WebviewViewProvider, vscode.Disposable {
         });
       } else if (value.type === 'clear') {
         this.history = [];
+        await this.context.workspaceState.update('iona.history', undefined);
         this.post({ type: 'history', messages: [] });
       } else if (value.type === 'chat' || value.type === 'start') {
         if (typeof value.task !== 'string' || !value.task.trim() || value.task.length > 24000)
@@ -232,15 +251,8 @@ class HarnessView implements vscode.WebviewViewProvider, vscode.Disposable {
           }
         }
         this.post({ type: 'accepted' });
-        this.post({ type: 'message', role: 'user', text: value.task });
+        this.addMessage({ role: 'user', content: value.task });
         const result = await this.bridge.request(value.type, params);
-        if (value.type === 'chat' && isRecord(result) && typeof result.text === 'string') {
-          this.history.push(
-            { role: 'user', content: value.task },
-            { role: 'assistant', content: result.text },
-          );
-          this.history = this.history.slice(-12);
-        }
         this.result(result);
       } else if (
         ['status', 'diff', 'continue', 'apply', 'discard', 'approve', 'reject'].includes(value.type)
@@ -319,19 +331,26 @@ class HarnessView implements vscode.WebviewViewProvider, vscode.Disposable {
   }
   private result(value: unknown): void {
     if (!isRecord(value)) return;
-    if (typeof value.text === 'string')
-      this.post({ type: 'message', role: 'assistant', text: value.text });
-    if (typeof value.summary === 'string')
-      this.post({ type: 'message', role: 'assistant', text: value.summary });
-    if (typeof value.status === 'string') {
-      this.post({ type: 'progress', text: 'Run: ' + value.status });
-      this.post({ type: 'runStatus', status: value.status });
-    }
+    const text = typeof value.text === 'string' ? value.text : undefined;
+    const summary = typeof value.summary === 'string' ? value.summary : undefined;
+    if (text) this.addMessage({ role: 'assistant', content: text });
+    if (summary && summary !== text) this.addMessage({ role: 'assistant', content: summary });
+    this.runStatus(value);
+  }
+  private runStatus(value: unknown): void {
+    if (!isRecord(value) || typeof value.status !== 'string') return;
+    this.post({ type: 'progress', text: 'Run: ' + value.status });
+    this.post({ type: 'runStatus', status: value.status });
     if (value.status === 'waiting_approval')
       this.post({
         type: 'progress',
         text: 'Protected patch waiting for review. Choose Approve or Reject, then Continue.',
       });
+  }
+  private addMessage(message: Message): void {
+    this.history = [...this.history, message].slice(-40);
+    void this.context.workspaceState.update('iona.history', this.history);
+    this.post({ type: 'message', role: message.role, text: message.content });
   }
   dispose(): void {
     this.bridge.dispose();
