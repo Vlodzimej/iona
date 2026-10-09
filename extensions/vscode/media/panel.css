@@ -165,6 +165,33 @@ input:focus-visible {
   flex-shrink: 0;
   padding-top: 8px;
 }
+.activity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px 9px;
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+}
+.activity__spinner {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  border: 2px solid var(--vscode-panel-border, #ffffff2b);
+  border-top-color: var(--vscode-progressBar-background, var(--vscode-focusBorder));
+  border-radius: 50%;
+  animation: activity-spin 0.8s linear infinite;
+}
+.activity__time {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+}
+@keyframes activity-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 .status {
   padding: 0 4px 8px;
   font-size: 11px;

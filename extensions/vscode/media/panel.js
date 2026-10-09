@@ -2,6 +2,9 @@
 const vscode = acquireVsCodeApi();
 const messages = document.getElementById('messages');
 const status = document.getElementById('status');
+const activity = document.getElementById('activity');
+const activityText = document.getElementById('activity-text');
+const activityTime = document.getElementById('activity-time');
 const run = document.getElementById('run');
 const task = document.getElementById('task');
 const mode = document.getElementById('mode');
@@ -9,7 +12,38 @@ const sendButton = document.getElementById('send');
 let busy = false;
 let partial;
 let hasRun = false;
+let activityStartedAt = 0;
+let activityTimer;
+let activityLabel = '';
 const runActions = new Set(['status', 'diff', 'continue', 'approve', 'reject', 'apply', 'discard']);
+function elapsedText() {
+  const seconds = Math.max(0, Math.floor((Date.now() - activityStartedAt) / 1000));
+  return Math.floor(seconds / 60) + ':' + String(seconds % 60).padStart(2, '0');
+}
+function startActivity() {
+  activityStartedAt = Date.now();
+  setActivityText(mode.value === 'start' ? 'Working on task…' : 'Generating response…');
+  activityTime.textContent = '0:00';
+  activity.hidden = false;
+  clearInterval(activityTimer);
+  activityTimer = setInterval(() => {
+    activityTime.textContent = elapsedText();
+    if (Date.now() - activityStartedAt >= 30000)
+      activityText.textContent = activityLabel + ' · still working; you can cancel';
+  }, 1000);
+}
+function stopActivity() {
+  clearInterval(activityTimer);
+  activityTimer = undefined;
+  activity.hidden = true;
+}
+function progressText(text) {
+  return text.startsWith('Tool: ') ? 'Using ' + text.slice(6) + '…' : text;
+}
+function setActivityText(text) {
+  activityLabel = text;
+  activityText.textContent = text;
+}
 function refresh() {
   for (const button of document.querySelectorAll('button[data-action]')) {
     const action = button.dataset.action;
@@ -178,6 +212,8 @@ window.addEventListener('message', ({ data }) => {
   }
   if (data.type === 'busy') {
     busy = data.value;
+    if (busy) startActivity();
+    else stopActivity();
     refresh();
   }
   if (data.type === 'run') {
@@ -203,6 +239,7 @@ window.addEventListener('message', ({ data }) => {
     refresh();
   }
   if (data.type === 'chatPartial') {
+    setActivityText('Writing response…');
     if (!partial) {
       partial = add('assistant', data.text, true);
     }
@@ -220,7 +257,9 @@ window.addEventListener('message', ({ data }) => {
     partial = undefined;
     refresh();
   }
-  if (data.type === 'progress' || data.type === 'error') {
+  if (data.type === 'progress' && busy) {
+    setActivityText(progressText(data.text));
+  } else if (data.type === 'progress' || data.type === 'error') {
     status.textContent = data.text;
     status.hidden = !data.text;
     status.classList.toggle('status--error', data.type === 'error');

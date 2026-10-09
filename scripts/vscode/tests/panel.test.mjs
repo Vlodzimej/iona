@@ -65,12 +65,18 @@ test('panel serializes actions, renders content as text and removes rejected pro
   send({ type: 'busy', value: true });
   assert.equal(document.getElementById('send').hidden, true);
   assert.equal(document.querySelector('[data-action="cancel"]').disabled, false);
+  assert.equal(document.getElementById('activity').hidden, false);
+  assert.equal(document.getElementById('activity-text').textContent, 'Generating response…');
+  send({ type: 'progress', text: 'Tool: git_diff' });
+  assert.equal(document.getElementById('activity-text').textContent, 'Using git_diff…');
   send({ type: 'chatPartial', text: '<img src=x onerror=alert(1)>' });
+  assert.equal(document.getElementById('activity-text').textContent, 'Writing response…');
   assert.equal(document.querySelector('#messages img'), null);
   send({ type: 'error', text: 'Truncated; rejected.' });
   assert.equal(document.querySelector('#messages').textContent, '');
   assert.equal(document.getElementById('empty').hidden, false);
   send({ type: 'busy', value: false });
+  assert.equal(document.getElementById('activity').hidden, true);
   document.getElementById('task').value = 'Question';
   document.getElementById('task').dispatchEvent(new window.Event('input'));
   document.getElementById('send').click();

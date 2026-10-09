@@ -188,13 +188,15 @@ test('extension agent denies lockfiles and unknown tools without executing model
   ];
   const service = new ExtensionService({
     ...options,
+    emit: (event) => outputs.push(JSON.stringify(event)),
     complete: async (_, messages) => {
       outputs.push(JSON.stringify(messages));
       return requests.shift();
     },
   });
   await service.handle('start', { repository, task: 'Inspect', config });
-  assert.match(outputs.at(-1), /Tool rejected/);
+  assert.ok(outputs.some((output) => output.includes('Tool rejected')));
+  assert.ok(outputs.some((output) => output.includes('Reviewing shell result')));
   assert.equal(git(repository, 'status', '--porcelain'), '');
 });
 

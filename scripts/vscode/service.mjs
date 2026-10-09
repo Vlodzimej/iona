@@ -271,6 +271,7 @@ export class ExtensionService {
       }
       reply(request, result);
       if (request.name === 'finish' && result.ok) return result;
+      this.emit({ type: 'progress', text: 'Reviewing ' + request.name + ' result…' });
     }
     return {
       ...session.status(runId),
