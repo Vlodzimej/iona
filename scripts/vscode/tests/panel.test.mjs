@@ -129,6 +129,20 @@ test('assistant Markdown renders tables, lists and code without executing model 
     null,
   );
 });
+test('incomplete pipe tables render as readable labeled list items', (context) => {
+  const { document, send } = panel(context);
+  send({
+    type: 'message',
+    role: 'assistant',
+    text: '| Обновление | Обновляет данные |\n| Переиспользование | Общий компонент |',
+  });
+
+  const items = document.querySelectorAll('.md-list_item');
+  assert.equal(items.length, 2);
+  assert.equal(items[0].textContent, 'Обновление: Обновляет данные');
+  assert.equal(items[1].textContent, 'Переиспользование: Общий компонент');
+  assert.equal(document.querySelectorAll('.md-table').length, 0);
+});
 test('copy sends exact original Markdown and waits for clipboard acknowledgement', (context) => {
   const { document, send, actions } = panel(context);
   const text = '**Hello**\n\n```ts\nconst n = 1;\n```';

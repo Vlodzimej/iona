@@ -61,6 +61,30 @@ let copySequence = 0;
 const copyRequests = new Map();
 
 // Build only trusted DOM elements from parser tokens, never HTML supplied by the model.
+function normalizeMarkdown(text) {
+  const lines = text.split('\n');
+  let fenced = false;
+  return lines
+    .map((line, index) => {
+      if (/^\s*```/u.test(line)) {
+        fenced = !fenced;
+        return line;
+      }
+      if (fenced || !/^\s*\|.*\|\s*$/u.test(line)) return line;
+      const previous = lines[index - 1] || '';
+      const next = lines[index + 1] || '';
+      const separator = /^\s*\|?(?:\s*:?-{3,}:?\s*\|)+\s*$/u;
+      if (separator.test(line) || separator.test(previous) || separator.test(next)) return line;
+      const cells = line
+        .trim()
+        .slice(1, -1)
+        .split('|')
+        .map((cell) => cell.trim());
+      if (cells.length < 2 || !cells[0] || !cells.slice(1).join(' ')) return line;
+      return '- **' + cells[0] + ':** ' + cells.slice(1).join(' — ');
+    })
+    .join('\n');
+}
 function renderMarkdown(target, text) {
   const tags = {
     paragraph: 'div',
@@ -133,7 +157,7 @@ function renderMarkdown(target, text) {
     }
   }
   target.replaceChildren();
-  appendTokens(target, markdown.parse(text, {}));
+  appendTokens(target, markdown.parse(normalizeMarkdown(text), {}));
 }
 function add(role, text, provisional = false) {
   const item = document.createElement('div');

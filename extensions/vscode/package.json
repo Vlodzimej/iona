@@ -2,7 +2,7 @@
   "name": "iona",
   "displayName": "Iona",
   "description": "Local coding agent and development harness for Ionic and Capacitor applications.",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "publisher": "iona",
   "license": "UNLICENSED",
   "engines": {
